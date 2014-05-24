@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% load config %}
+
+{% block title %}Login to {% option "site_title" %}{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+  
+  <h2>Login to {% option "site_title" %} <small class="pull-right">{% option "tagline" %}</small></h2>
+  <p id="intro">Please login with your school user account.</p>
+  
+  <form method="POST" action="">
+    <div id="error-message" class="alert alert-danger">{{ message }}</div>
+    <p><input name="username" placeholder="Username" class="form-control" value="{{ username }}" /></p>
+    <p><input name="password" placeholder="Password" class="form-control" type="password" /></p>
+    <p><input type="submit" value="Login" class="btn btn-primary" /></p>
+  </form>
+</div>
+{% endblock %}
+
+{% block custom_style %}
+#content {
+    margin-top: 8%;
+}
+
+#error-message {
+    line-height: 0.6;
+    font-size: 0.9em;
+    margin-top: 0.5em;
+}
+
+#error-message:empty {
+    display: none;
+}
+
+input[type=submit] {
+    margin-top: 1em;
+    margin-left: 25%;
+    width: 50%;
+}
+{% endblock %}

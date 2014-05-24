@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load static %}
+{% load config %}
+<html>
+  <head>
+    <title>{% block title %}{% get_opt "site_title" %}{% endblock %}</title>
+
+    {% block viewport %}<meta name="viewport" content="width=device-width, initial-scale=1.0">{% endblock %}
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+
+    {% block custom_head %}{% endblock %}
+    <style type="text/css">{% block custom_style %}{% endblock %}</style>
+  </head>
+  <body>
+    {% block body %}<div id="content" class="container">{% block content %}
+      Content Not Found!{% endblock %}</div>{% endblock %}
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <script>var static_path = "{% get_static_prefix %}";</script>{% if jsfilename %}
+    <script src="{% get_static_prefix %}js/{{ jsfilename }}.js"></script>{% endif %}
+    {% block custom_scripts %}{% endblock %}
+    <script>{% block custom_script %}{% endblock %}</script>
+  </body>
+</html>

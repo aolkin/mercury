@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ options.site_title }} Voting</h1>
+</div>
+
+{% include "message_alerts.html" %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Current Elections</h3>
+  </div>
+  <div class="panel-body">
+    <div class="list-group">
+      {% for poll in polls %}
+      <a href="{{ poll.get_absolute_url }}" class="list-group-item {% if poll.is_open %}{% else %}list-group-item-warning{% endif %}">
+	<div class="media">
+	  <img class="media-object voteobject-image pull-left" src="{% if poll.image %}{{ poll.image.url }}{% else %}{{ STATIC_URL }}{{options.voting_default_image}}{% endif %}" />
+	  <div class="media-body">
+	    <h4 class="media-heading">{{ poll.name }}</h4>
+	    {{ poll.desc }}
+	    {% if not poll.is_open %}
+	    <div class="label label-warning pull-right">This election is currently closed, but will open {{ poll.begin_date|naturaltime }}.</div>
+	    {% endif %}
+	  </div>
+	</div>
+      </a>
+      {% empty %}
+      <div class="alert alert-info">
+	<strong>Whoops, no elections are available to you right now!</strong>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

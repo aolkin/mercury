@@ -1,0 +1,6 @@
+.*~
+*.pyc
+*/__pycache__/*
+settings.py
+
+*.css
