@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.db import models
 from django.forms.widgets import TextInput
 
+#from django.contrib.contenttypes.admin import *
+
 # Register your models here.
 
 from .models import *
@@ -58,6 +60,18 @@ class ChoiceAdmin(admin.ModelAdmin):
         perms["add"] = False
         return perms
 
+class ResponseAdmin(admin.ModelAdmin):
+    readonly_fields = ("user","question","choice","choice_extra")
+    list_display = ("user","question","choice","choice_extra")
+    list_display_links = None
+    list_filter = ("user","question")
+
+    def get_model_perms(self,request):
+        perms = super().get_model_perms(request)
+        perms["add"] = False
+        return perms
+
 admin.site.register(Poll,PollAdmin)
 admin.site.register(Question,QuestionAdmin)
 admin.site.register(Choice,ChoiceAdmin)
+admin.site.register(Response,ResponseAdmin)

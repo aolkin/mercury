@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+  <h1><img class="voteobject-image" src="{% if poll.image %}{{ poll.image.url }}{% else %}{{ STATIC_URL }}{{options.voting_default_image}}{% endif %}" />{{ poll.name }}</h1>
+</div>
+
+{% include "message_alerts.html" %}
+
+<p class="lead">{{ poll.desc }}</p>
+
+{% for question, answer in questions.items %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <div class="media">
+      <img class="media-object voteobject-image-small pull-left" src="{% if question.image %}{{ question.image.url }}{% else %}{{ STATIC_URL }}{{options.voting_question_image}}{% endif %}" />
+      <div class="media-body">
+	<h4 class="media-heading" data-question="{{ question.pk }}">{{ question.name }}</h4>
+	{{ question.desc }}
+      </div>
+    </div>
+  </div>
+  <div class="panel-body">
+    {% if question.kind == 0 %}
+    <!-- Highest wins (radio buttons?) -->
+
+    {% elif question.kind == 1 %} <!-- IRV -->
+    <div class="irv-container">
+      <div class="well well-lg list-group" data-question="{{ question.pk }}">
+	<h4>Select your first, second, and third choices:</h4>
+
+	  {% for choice in question.choices.all %}
+	  <div class="list-group-item">
+	    <span class="irv-text" title="{{ choice.desc }}">{{ choice.name }}</span>
+	    <div class="irv-choices pull-right btn-group">
+	      {% for i in "123" %}
+	      <button type="button" class="btn btn-default" data-number="{{ i }}"
+		      data-question="{{ question.pk }}"
+		      data-choice="{{ choice.pk }}">{{ i }}</button>
+	      {% endfor %}
+	    </div>
+	  </div>
+	  {% endfor %}
+      </div>
+    </div>
+
+    {% elif question.kind == 2 %}
+    <!-- Fill in (text box) -->
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+
+<div class="panel panel-default">
+  <div class="panel-heading panel-footer">
+    <div class="btn-group">
+      <button class="btn btn-default btn-lg" disabled="disabled">&nbsp;</button>
+    </div>
+    <div class="pull-right btn-group">
+      <button class="btn btn-primary btn-lg voting-submit">Submit Selections</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

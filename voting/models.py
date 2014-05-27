@@ -7,6 +7,9 @@ from django.contrib.auth.models import User, Group
 from django.utils.html import format_html
 from django.utils import timezone
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 # Create your models here.
 
 class VoteObject(models.Model):
@@ -59,8 +62,19 @@ class Poll(VoteObject):
                 return False
         return True
 
+    def user_allowed(self,user=None,cache=False):
+        if cache:
+            self._cached_user_allowed = self.user_allowed(user)
+        if (not user) and (not hasattr(self,"_cached_user_allowed")):
+            raise TypeError("Must supply user without previous cached value!")
+        return (getattr(self,"_cached_user_allowed",False) if not user else
+                (not ((not self.allow_edits) and Response.objects.filter(
+                    user=user, question=Question.objects.filter(poll=self)[0]).exists())))
+
 class Choice(VoteObject):
-    pass
+    content_type = models.ForeignKey(ContentType,blank=True,null=True,default=None)
+    object_id = models.PositiveIntegerField(blank=True,null=True,default=None)
+    obj = GenericForeignKey()
 
 class Question(VoteObject):
     poll = models.ForeignKey(Poll)
@@ -70,8 +84,15 @@ class Question(VoteObject):
         (2, "Fill-in"),
     ))
     choices = models.ManyToManyField(Choice)
+    choice_type = models.ForeignKey(ContentType,blank=True,null=True)
 
 class Response(models.Model):
     user = models.ForeignKey(User)
-    choice = models.ForeignKey(Choice)
     question = models.ForeignKey(Question)
+    choice = models.ForeignKey(Choice,blank=True,null=True)
+    choice_extra = models.CharField(max_length=512,blank=True,null=True)
+
+    def __str__(self):
+        return "{user}'s response to {question}: {choice} ({choice_extra})".format(
+            user=self.user.get_full_name(), question=self.question,
+            choice=self.choice, choice_extra=self.choice_extra)

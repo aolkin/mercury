@@ -1,5 +1,33 @@
 
+@voting-image-size: 64px;
+
 .voteobject-image {
-    width: 64px;
-    max-height: 64px;
+    width: @voting-image-size;
+    max-height: @voting-image-size;
+}
+
+.voteobject-image-small {
+    width: (@voting-image-size / 2);
+    max-height: (@voting-image-size / 2);
+}
+
+.irv-container {
+
+    .list-group-item {
+	height: 4em;
+
+	.irv-text {
+	    display: inline-block;
+	    margin-top: 0.5em;
+	}
+	
+	.irv-choices {
+	    width: 50%;
+
+	    button {
+		min-width: 33.33%;
+	    }
+	}
+    }
+
 }

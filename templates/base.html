@@ -20,8 +20,9 @@
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
-    <script>var static_path = "{% get_static_prefix %}";</script>{% if jsfilename %}
-    <script src="{% get_static_prefix %}js/{{ jsfilename }}.js"></script>{% endif %}
+    <script src="{% get_static_prefix %}js/libs.js"></script>
+    <script data-static-js="mercury" src="{% get_static_prefix %}js/mercury.js"></script>
+    {% if jsfilename %}<script src="{% get_static_prefix %}js/{{ jsfilename }}.js"></script>{% endif %}
     {% block custom_scripts %}{% endblock %}
     <script>{% block custom_script %}{% endblock %}</script>
   </body>
