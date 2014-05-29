@@ -1,7 +1,13 @@
 Mercury
 =======
 
-An "Intranet" system for PHS.
+An internal [Django](https://www.djangoproject.com/) web site
+to provide services to PHS students and staff.
+
+Polls and Elections
+-------------------
+
+In addition to LDAP authentication, the only service written so far is IRV elections. The code for that package can be found in the `voting` directory.
 
 
 Django Settings
