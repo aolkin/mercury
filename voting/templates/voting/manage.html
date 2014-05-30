@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+  <a href="{% url "voting.views.index" %}" class="btn btn-lg btn-primary pull-right">Poll List</a>
+  <h1>Manage {{ poll.name }}</h1>
+</div>
+
+{% include "message_alerts.html" %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Poll Configuration</h3>
+  </div>
+  <div class="panel-body">
+    <div class="alert alert-danger">
+      <strong>Not implemented here yet!</strong>
+      Use the <a href="{% url "admin:voting_poll_change" poll.id %}">Django admin</a> interface to make changes for now.
+    </div>
+  </div>
+  <div class="panel-footer">
+    <div class="btn-group">
+      <button class="btn btn-default">Configuration Actions</button>
+    </div>
+    <div class="pull-right btn-group">
+      <button class="btn btn-default">Go Here</button>
+    </div>  
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Poll Results</h3>
+  </div>
+  <div class="panel-body results-body">
+  </div>
+  <div class="panel-footer">
+    <div class="btn-group">
+      <button class="btn btn-success show-result-steps">Show Steps</button>
+    </div>
+    <div class="pull-right btn-group">
+      <button class="btn btn-primary reload-results">Refresh Results</button>
+    </div>  
+  </div>
+</div>
+
+{% endblock %}

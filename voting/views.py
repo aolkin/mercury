@@ -1,16 +1,13 @@
 from django.shortcuts import render, render_to_response, redirect, get_object_or_404
-
 from django.core.urlresolvers import reverse
-
 from django.http import *
-
 from django.db.models import Q
-
 from django.utils import timezone
-
 from django.contrib import messages
 
 from .models import *
+
+from .votecounters import COUNTING_METHODS
 
 import json
 
@@ -35,7 +32,8 @@ def index(request):
         if is_accessible(i,request.user):
             polls.append(i)
             i.user_allowed(request.user,True)
-    return render(request,"voting/index.html",{"polls":polls})
+    adminpolls = Poll.objects.filter(admins=request.user)
+    return render(request,"voting/index.html",{"polls":polls,"adminpolls":adminpolls})
 
 class VotingNotAllowedError(Exception): pass
 
@@ -83,7 +81,33 @@ def vote(request,id_):
     return render(request,"voting/poll.html",locals())
 
 def manage(request,id_):
-    return redirect("/admin/")
+    poll = get_object_or_404(Poll,id=id_)
+    return render(request,"voting/manage.html",locals())
+
+def get_results(request,id_):
+    poll = get_object_or_404(Poll,id=id_)
+    results = {}
+    for question in poll.question_set.all():
+        method = COUNTING_METHODS[question.kind]
+        results[question.name] = {}
+        responseset = Response.objects.filter(question=question).order_by("user","choice_extra")
+        responses = []
+        user = None
+        res = None
+        for i in responseset:
+            if i.user != user:
+                user = i.user
+                if res:
+                    responses.append(method.response_type(*res))
+                res = []
+            res.append(i.choice.name)
+        responses.append(method.response_type(*res))
+        counter = method(responses)
+        steps = []
+        for i in counter:
+            steps.append(i)
+        results[question.name] = [counter.get(),steps]
+    return JsonResponse(results)
 
 def new(request):
     return redirect("voting_manage","heh")

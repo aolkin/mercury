@@ -43,4 +43,35 @@
     </div>
   </div>
 </div>
+
+{% if adminpolls|length > 0 %}
+<div class="panel panel-warning">
+  <div class="panel-heading">
+    <h3 class="panel-title">Polls You Administer</h3>
+  </div>
+  <div class="panel-body">
+    <div class="list-group">
+      {% for poll in adminpolls %}
+      <a href="{% url 'voting.views.manage' poll.id %}" class="list-group-item">
+	<div class="media">
+	  <img class="media-object voteobject-image pull-left" src="{% if poll.image %}{{ poll.image.url }}{% else %}{{ STATIC_URL }}{{options.voting_default_image}}{% endif %}" />
+	  <div class="media-body">
+	    <h4 class="media-heading">{{ poll.name }}</h4>
+	    {{ poll.desc }}
+	    {% if not poll.is_open %}
+	      {% if "ago" in poll.end_date|naturaltime %}
+	      <div class="label label-warning pull-right">This poll closed {{ poll.end_date|naturaltime }}.</div>
+	      {% else  %}
+	      <div class="label label-warning pull-right">This poll is currently closed, but will open {{ poll.begin_date|naturaltime }}.</div>
+	      {% endif %}
+	    {% endif %}
+	  </div>
+	</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
