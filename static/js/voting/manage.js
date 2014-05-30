@@ -13,7 +13,7 @@ ResultsApp.prototype = {
     },
     processResults: function processResults(data,status,xhr) {
 	console.log(data);
-	$(".loading").empty();
+	$(".results-body").empty();
 	var root = $("<ul>").appendTo($(".results-body"));
 	for (i in data) {
 	    var el = $("<li>").appendTo(root);
