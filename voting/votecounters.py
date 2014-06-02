@@ -61,17 +61,27 @@ class IRVQuestion(IteratingResponseCounter):
 
     def step(self):
         candidates = {}
+        total = 0
         for i in self.responses:
             if i.get():
+                total += 1
                 candidates[i.get()] = candidates.get(i.get(),0) + 1
         worst = (float("inf"),None)
+        best = (0,None)
         for i, c in candidates.items():
             if c < worst[0]:
                 worst = (c,[i])
             elif c == worst[0]:
                 worst[1].append(i)
+            if c > best[0]:
+                best = (c,[i])
+            elif c == best[0]:
+                best[1].append(i)
         if len(candidates) == 1:
             self.result = worst[1][0]
+        elif best[0] > total/2 and len(best[1]) == 1:
+            self.result = best[1][0]
+            return candidates, best[1]
         elif len(candidates) < 1:
             self.result = True
         else:
