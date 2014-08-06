@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'config',
     ### Mercury Apps
     'voting',
+    'codecompetitions',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -130,6 +131,8 @@ STATICFILES_DIRS = (
 
 MEDIA_URL = '/media_resources/'
 MEDIA_ROOT = os.path.join(BASE_DIR,"managed_resources/mediafiles")
+
+PRIVATE_ROOT = os.path.join(BASE_DIR,"privatefiles")
 
 LDAP_SERVER = ""
 LDAP_SEARCH_BASE = ""

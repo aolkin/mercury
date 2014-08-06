@@ -4,3 +4,6 @@
 settings.py
 
 *.css
+
+/managed_resources/*
+/privatefiles/*
