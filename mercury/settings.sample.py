@@ -76,7 +76,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "config.context_processors.configuration",
     "mercury.context_processors.base",
-    "mercury.context_processors.sidebar",
+    #"mercury.context_processors.sidebar",
 )
 
 ROOT_URLCONF = 'mercury.urls'

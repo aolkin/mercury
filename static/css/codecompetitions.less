@@ -1,0 +1,141 @@
+.codecompetitions {
+
+    .navbar-fixed-top {
+	.navbar-brand {
+	    .glyphicon {
+		visibility: hidden;
+	    }
+	    &:hover .glyphicon {
+		visibility: visible;
+	    }
+	    small {
+		font-size: 0.6em;
+	    }
+	}
+
+	.disabled * {
+	    cursor: default;
+	}
+    }
+
+    .sidebar, .content {
+	position: fixed;
+	top: 51px;
+	bottom: 0;
+	overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    }
+    .sidebar {
+	left: 0;
+	padding: 1em 20px;
+	z-index: 1000;
+	overflow-x: hidden;
+	border-right: 1px solid #E7E7E7;
+    }
+    
+    /* Sidebar navigation */
+    .nav-sidebar {
+	margin-right: -21px; /* 20px padding + 1px border */
+	margin-bottom: 20px;
+	margin-left: -20px;
+	
+	&.navbar-nav, li {
+	    float: initial;
+	    
+	    a {
+		padding-top: 10px;
+		padding-bottom: 10px;
+	    }
+	    a:not([href]) {
+		color: #333;
+	    }
+	}
+
+	li.header {
+	    font-weight: bold;
+	    background-color: #ACACAC;
+	    text-align: center;
+	}
+    }
+    .nav-sidebar > li > a {
+	padding-right: 20px;
+	padding-left: 20px;
+    }
+
+    .content {
+	right: 0;
+	padding-top: 1em;
+	padding-bottom: 1em;
+    }
+
+
+    .modal {
+	overflow-y: auto;
+    }
+
+    .content .container-fluid {
+	position: relative;
+	min-height: 100%;
+    }
+
+    .vr {
+	width: 1px;
+	background-color: #000;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	margin: -1em 0;
+    }
+    
+    .problem-description .list-group {
+	margin-bottom: 0px;
+    }
+
+    .bootstrap-select.btn-group {
+	margin-bottom: 0;
+    }
+
+    .btn-file {
+	position: relative;
+	overflow: hidden;
+    }
+    .btn-file input[type=file] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 100%;
+	min-height: 100%;
+	font-size: 100px;
+	text-align: right;
+	filter: alpha(opacity=0);
+	opacity: 0;
+	background: red;
+	cursor: inherit;
+	display: block;
+    }
+    input[readonly] {
+	background-color: white !important;
+	cursor: default !important;
+	
+	&:focus {
+	    border-color: #CCC;
+	    box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+	}
+    }
+
+    .panel-body {
+	position: relative;
+    }
+    .disable-panel {
+	position: absolute;
+	background-color: #CCC;
+	opacity: 0.5;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: 9999;
+	cursor: not-allowed;
+    }
+
+}

@@ -32,10 +32,25 @@ class CompetitionAdmin(admin.ModelAdmin):
     filter_horizontal = ("judges","admins","limit_to")
     inlines = [ ProblemInline ]
 
-    list_display = ("name","languages","date_created")
-    list_filter = ("allowed_languages","date_created")
+    list_display = ("name","get_admins","languages","date_created","date_modified")
+    list_filter = ("allowed_languages","date_created","date_modified")
     search_fields = ("name","description")
-    ordering = ("date_created",)
+
+    save_on_top = True
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'allowed_languages', 'original_time_left',)
+        }),
+        ('Advanced Options', {
+            'classes': ('collapse',),
+            'fields': ('description', 'paused_time_left',)
+        }),
+        ('User Permissions', {
+            'classes': ('collapse',),
+            'fields': ('judges','admins','limit_to')
+        }),
+    )
 
 class ProblemAdmin(admin.ModelAdmin):
     list_display = ("name","competition")

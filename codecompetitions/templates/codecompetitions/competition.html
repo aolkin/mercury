@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}{{ viewname.title }}: {{ c.name }} | Coding Competitions | {{ options.site_title }}{% endblock %}
+
+{% block body %}
+<div class="codecompetitions">
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="{% url "codecompetitions.views.index" %}"
+	 title="Back to Competition List">
+	<span class="glyphicon glyphicon-circle-arrow-left"></span>&nbsp;
+	Competitions / {{ c.name }}
+      </a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav navbar-right">
+        <li {% if viewname == "compete" %}class="active"{% endif %}>
+	  <a href="{% url "codecompetitions.views.compete" c.id %}">Compete</a></li>
+	{% if c.get_role == "admin" or c.get_role == "judge" %}
+        <li {% if viewname == "judge" %}class="active"{% endif %}>
+	  <a href="{% url "codecompetitions.views.judge" c.id %}">Judge</a></li>
+	{% if c.get_role == "admin" %}
+        <li {% if viewname == "admin" %}class="active"{% endif %}>
+	  <a href="{% url "codecompetitions.views.admin" c.id %}">Administrate</a></li>
+	{% endif %} {% endif %}
+        <li><a href="#{% url "codecompetitions.views.scoreboard" c.id %}" id="score-link">
+	    Scoreboard&nbsp;<span class="glyphicon glyphicon-new-window"></span></a></li>
+	<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+	    {{ request.user.first_name }} {{ request.user.last_name }}
+	    <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+	    <!--<li class="disabled"><a>{{ request.user.username }}</a></li>-->
+	    <li class="disabled"><a>{{ c.get_role.title }} for this Competition</a></li>
+            <li class="divider"></li>
+            <li><a href="{% url "logout" %}">Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <div class="col-sm-3 col-md-2 sidebar navbar-default">
+          <ul class="nav nav-sidebar navbar-nav text-center">
+	    <li class="header"><a title="Remaining Time" id="remaining-time">
+		{{ c.remaining_time }}</a></li>
+            <li><a>Contest Length: <span>{{ c.contest_length }}</span></a></li>
+	    {% if c.get_role == "judge" or c.get_role == "admin" %}
+	    <li>
+	      <button class="btn btn-success" id="start-timer">Start</button>
+	      <button class="btn btn-danger" id="stop-timer" disabled>Stop</button>
+	    </li>
+	    {% endif %}
+          </ul>
+          <ul class="nav nav-sidebar navbar-nav">
+	    <li class="header"><a>Problems <span class="badge" id="problem-count">
+		  {{ c.problem_set.count }}</span></a></li>
+	    {% for p in c.problem_set.all %}
+            <li>
+	      <a href="#{{ p.id }}-{{ p.name|urlencode }}" data-problem="{{ p.id }}"
+		 class="problem-{{ p.id }}">{{ p.name }}</a>
+	    </li>
+	    {% endfor %}
+          </ul>
+        </div>
+
+    <div class="col-sm-9 col-md-10 content">
+      <div class="container-fluid">
+	<div class="vr hidden-xs hidden-sm">&nbsp;</div>
+
+	<div class="row">
+	  <div class="col-sm-12 col-md-6">
+	    {% include "message_alerts.html" %}
+
+	    {% block left %}
+	    <div class="panel panel-default">
+	      <div class="panel-heading">
+		<h3 class="problem-name panel-title">
+		  Select a Problem in <strong>{{ c.name }}</strong> to Begin</h3>
+	      </div>
+	      <div class="panel-body problem-description">
+		<div class="list-group">
+		  {% for p in c.problem_set.all %}
+		  <a class="list-group-item" href="#{{ p.id }}-{{ p.name|urlencode }}"
+		     data-problem="{{ p.id }}">{{ p.name }}</a>
+		  {% endfor %}
+		</div>
+	      </div>
+	    </div>
+
+	    {% if viewname == "compete" %}
+	    <div class="panel panel-primary">
+	      <div class="panel-heading">
+		<h4 class="panel-title">Upload New Code</h4>
+	      </div>
+	      <div class="panel-body">
+		<div class="disable-panel"></div>
+		<div class="form-group">
+		  {% if langs|length == 1 %}
+		  <strong>Language:</strong> {{ langs.0.name }} <em>({{ langs.0.version }})</em>
+		  <div class="hide">
+		  {% endif %}
+		  <label for="select-language">Language</label>
+		  <select class="selectpicker form-control show-tick"
+			  data-header="Select your language" id="select-language">
+		    {% for l in langs %}
+		    <option value="{{ l.pk }}" data-subtext="{{ l.version }}">
+		      {{ l.name }}</option>
+		    {% endfor %}
+		  </select>
+		  {% if langs|length == 1 %}
+		  </div>
+		  {% endif %}
+		</div>
+		<div class="form-group">
+		  <label for="main-file">Main File</label>
+		  <div class="input-group">
+                    <span class="input-group-btn">
+                      <span class="btn btn-primary btn-file">
+			Browse&hellip; <input type="file" id="main-file">
+                      </span>
+                    </span>
+                    <input type="text" class="form-control" tabindex="-1"
+			   placeholder="Select a file..." readonly>
+		  </div>
+		</div>
+		<div class="form-group">
+		  <label for="main-file">Extra Files</label>
+		  <div class="input-group">
+                    <span class="input-group-btn">
+                      <span class="btn btn-primary btn-file">
+			Browse&hellip; <input type="file" id="extra-files" multiple>
+                      </span>
+                    </span>
+                    <input type="text" class="form-control" tabindex="-1"
+			   placeholder="Select files..." readonly>
+		  </div>
+		</div>
+		<div class="checkbox form-group">
+		  <label>
+		    <input type="checkbox" id="is-a-test-run" />
+		    This is a test run <em><small>(checking this box will prevent this
+			run from being judged or counted in your score)</small></em>
+		  </label>
+		</div>
+		<button class="form-control btn btn-primary" id="submit-new-code">
+		  Submit</button>
+	      </div>
+	    </div>
+	    {% elif viewname == "judge" %}
+	    <div class="panel panel-warning">
+	      <div class="panel-heading">
+		<h4 class="panel-title">Expected Output</h4>
+	      </div>
+	      <div class="panel-body">
+		<code class="expected-output">Sample</code>
+	      </div>
+	    </div>
+
+	    <div class="panel panel-primary">
+	      <div class="panel-heading">
+		<h4 class="panel-title">Select a Player to Judge</h4>
+	      </div>
+	      <div class="panel-body">
+		<select class="selectpicker form-control" id="player-to-judge">
+		  <optgroup label="Run Complete" id="run-complete-players">
+		  </optgroup>
+		  <optgroup label="Not Run" id="not-run-players">
+		  </optgroup>
+		</select>
+	      </div>
+	    </div>
+	    {% endif %}
+	    {% endblock %}
+	  </div>
+	  <div class="col-sm-12 col-md-6">
+	    {% block right %}
+	    
+	    {% endblock %}
+	  </div>
+	</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="websocket-dialog" class="modal fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+	Loading...
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block footer %}
+
+{% endblock %}
+
+</div>
+{% endblock %}

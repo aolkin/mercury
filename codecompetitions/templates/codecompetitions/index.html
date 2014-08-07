@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+
+{% block title %}Coding Competitions | {{ options.site_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <a href="{% url "logout" %}" class="btn btn-lg btn-primary pull-right">Logout</a>
+  <h1>Coding Competitions on {{ options.site_title }}</h1>
+</div>
+
+{% include "message_alerts.html" %}
+
+<div class="list-group">
+  {% for competition in competitions %}
+  <a href="{{ competition.get_absolute_url }}" class="list-group-item {% if competition.get_role == "judge" %}list-group-item-warning{% elif competition.get_role == "admin" %}list-group-item-danger{% endif %}">
+    <div class="media">
+      <div class="media-body">
+	<h4 class="media-heading"><big>{{ competition.name }} &ndash;</big>
+	   {{ competition.get_admins }}</h4>
+	{{ competition.description }}
+	{% if competition.get_role == "judge" %}
+	<div class="label label-warning pull-right">You may judge this competition.</div>
+	{% elif competition.get_role == "admin" %}
+	<div class="label label-danger pull-right">You may administrate this competition.</div>
+	{% endif %}
+      </div>
+    </div>
+  </a>
+  {% empty %}
+  <div class="alert alert-info">
+    <strong>Whoops, no competitions have been created!</strong>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

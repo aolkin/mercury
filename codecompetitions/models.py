@@ -10,11 +10,13 @@ from django.contrib.auth.models import User, Group
 
 from django.core.files.storage import FileSystemStorage
 
+from django.core.urlresolvers import reverse
+
 from django.conf import settings
 
 from .languages import LANGUAGES
 
-import os
+import os, time
 
 class Language(models.Model):
     index = models.PositiveSmallIntegerField(primary_key=True)
@@ -55,12 +57,47 @@ class Competition(models.Model):
     paused_time_left = PositiveIntegerField(null=True,blank=True,help_text="in seconds")
 
     date_created = DateTimeField(auto_now_add=True)
+    date_modified = DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-start_time","-date_modified")
+
+    def get_absolute_url(self):
+        return reverse("codecompetitions.views.default",args=(self.id,))
 
     def __str__(self):
         return self.name
 
     def languages(self,string=True):
         return ", ".join([i.name for i in self.allowed_languages.all()])
+
+    def get_role(self,user=None):
+        if user:
+            if self.admins.filter(id=user.id).exists():
+                self._cached_role = "admin"
+            elif self.judges.filter(id=user.id).exists():
+                self._cached_role = "judge"
+            else:
+                self._cached_role = "compete"
+        if not hasattr(self,"_cached_role"):
+            raise TypeError("Cache missing and no user supplied!")
+        return self._cached_role
+            
+    def get_admins(self,string=True):
+        return (self.admins.all() if not string else 
+                ", ".join(["{} {}".format(i.first_name,i.last_name) for i in self.admins.all()]))
+    get_admins.short_description = "Admins"
+
+    @property
+    def contest_length(self):
+        t = time.gmtime(self.original_time_left)
+        return time.strftime("%H:%M:%S",t)
+
+    @property
+    def remaining_time(self):
+        t = time.gmtime(self.paused_time_left if self.paused_time_left else
+                        self.original_time_left)
+        return time.strftime("%H:%M:%S",t)
 
 class Problem(models.Model):
     name = CharField(max_length=80)
