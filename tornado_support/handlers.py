@@ -1,13 +1,12 @@
-import django
+import django, importlib
 
 class DjangoUserMixin():
     def __init__(self,*args,**kwargs):
-        pass
+        super().__init__(*args,**kwargs)
         
     def get_django_session(self):
         if not hasattr(self, 'session'):
-            engine = django.utils.importlib.import_module(
-                django.conf.settings.SESSION_ENGINE)
+            engine = importlib.import_module(django.conf.settings.SESSION_ENGINE)
             session_key = self.get_cookie(django.conf.settings.SESSION_COOKIE_NAME)
             self.session = engine.SessionStore(session_key)
         return self.session

@@ -1,15 +1,15 @@
-#!/usr/bin/python3
-
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application, url
 
 from django.conf import settings
+import django
+django.setup()
 
 import sys, re
 
 from importlib import import_module
 
-DEBUG = ("debug" in sys.argv)
+DEBUG = ("debug" in sys.argv) or settings.DEBUG
 
 handlers = []
 
@@ -30,6 +30,3 @@ def main():
     host, colon, port = sys.argv[1].rpartition(":")
     application.listen(int(port),host)
     IOLoop.current().start()
-
-if __name__ == "__main__":
-    main()
