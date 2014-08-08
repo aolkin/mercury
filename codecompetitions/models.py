@@ -104,6 +104,7 @@ class Problem(models.Model):
     description = TextField(null=True,blank=True)
     competition = ForeignKey(Competition)
 
+    auto_judge = BooleanField(default=True)
     time_limit = PositiveIntegerField(default=5,help_text="in seconds")
     expected_output = TextField()
     input_data = TextField(null=True,blank=True)
@@ -114,6 +115,11 @@ class Problem(models.Model):
 
     def __str__(self):
         return self.name
+
+@receiver(pre_save,sender=Problem)
+def check_newlines(sender,instance,*args,**kwargs):
+    instance.expected_output = instance.expected_output.replace("\r","")
+    instance.input_data = instance.input_data.replace("\r","")
 
 run_storage = FileSystemStorage(location=settings.PRIVATE_ROOT,base_url="/private")
 
@@ -137,7 +143,9 @@ class Run(models.Model):
     has_been_run = BooleanField(default=False)
     output = TextField(null=True,blank=True)
     runtime = PositiveIntegerField(null=True,blank=True,help_text="in milliseconds")
-    exit_code = PositiveSmallIntegerField(null=True,blank=True)
+    exit_code = SmallIntegerField(null=True,blank=True)
+    compiled_successfully = NullBooleanField()
+
     time_to_submission = PositiveIntegerField(null=True,blank=True,
                             help_text="in milliseconds, though not accurate to the millisecond")
     time_of_submission = DateTimeField(auto_now_add=True)
@@ -148,10 +156,10 @@ class Run(models.Model):
 
     @property
     def extra_files(self):
-        return ExtraFile.objects.filter(run=self)
+        return [i.file for i in ExtraFile.objects.filter(run=self)]
 
     def has_extra_files(self):
-        return self.extra_files.exists()
+        return len(self.extra_files) > 0
 
     def __str__(self):
         return "Run {}".format(self.number)

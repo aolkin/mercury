@@ -16,7 +16,7 @@ class ProblemInline(admin.StackedInline):
             'fields': ('name',)
         }),
         ("More Settings", {
-            'fields': ('description','time_limit'),
+            'fields': ('description','time_limit','auto_judge'),
             'classes': ('collapse',)
         }),
         ("Input and Expected Output", {
@@ -63,7 +63,7 @@ class ExtraInline(admin.TabularInline):
     extra = 0
 
 class RunAdmin(admin.ModelAdmin):
-    list_display = ("problem","user","number","language")
+    list_display = ("problem","user","number","language","has_been_run","is_a_test")
     list_filter = ("is_a_test","language","has_been_run","exit_code",
                    "time_of_submission","judgement")
     ordering = ("problem","user","number")
