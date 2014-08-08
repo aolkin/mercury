@@ -63,6 +63,7 @@
 	      <button class="btn btn-danger" id="stop-timer" disabled>Stop</button>
 	    </li>
 	    {% endif %}
+	    <li><a id="contest-state">Loading Contest...</a></li>
           </ul>
           <ul class="nav nav-sidebar navbar-nav">
 	    <li class="header"><a>Problems <span class="badge" id="problem-count">
@@ -102,11 +103,11 @@
 
 	    {% if viewname == "compete" %}
 	    <div class="panel panel-primary">
+	      <div class="disable-panel disable-until-problem"></div>
 	      <div class="panel-heading">
 		<h4 class="panel-title">Upload New Code</h4>
 	      </div>
 	      <div class="panel-body">
-		<div class="disable-panel"></div>
 		<div class="form-group">
 		  {% if langs|length == 1 %}
 		  <strong>Language:</strong> {{ langs.0.name }} <em>({{ langs.0.version }})</em>
@@ -161,25 +162,22 @@
 	    </div>
 	    {% elif viewname == "judge" %}
 	    <div class="panel panel-warning">
+	      <div class="disable-panel disable-until-problem"></div>
 	      <div class="panel-heading">
 		<h4 class="panel-title">Expected Output</h4>
 	      </div>
 	      <div class="panel-body">
-		<code class="expected-output">Sample</code>
+		<pre class="expected-output"></pre>
 	      </div>
 	    </div>
 
 	    <div class="panel panel-primary">
+	      <div class="disable-panel disable-until-problem"></div>
 	      <div class="panel-heading">
 		<h4 class="panel-title">Select a Player to Judge</h4>
 	      </div>
 	      <div class="panel-body">
-		<select class="selectpicker form-control" id="player-to-judge">
-		  <optgroup label="Run Complete" id="run-complete-players">
-		  </optgroup>
-		  <optgroup label="Not Run" id="not-run-players">
-		  </optgroup>
-		</select>
+		<select class="selectpicker form-control" id="player-to-judge"></select>
 	      </div>
 	    </div>
 	    {% endif %}
@@ -187,7 +185,95 @@
 	  </div>
 	  <div class="col-sm-12 col-md-6">
 	    {% block right %}
-	    
+
+	    <div class="panel panel-primary">
+	      <div class="disable-panel disable-until-problem"></div>
+	      <div class="panel-heading">
+		<h4 class="panel-title">Select Run to View</h4>
+	      </div>
+	      <div class="panel-body">
+		<div class="input-group">
+		  <select class="selectpicker form-control" id="run-to-view"></select>
+		  <span class="input-group-btn">
+		    <button class="btn btn-default" id="schedule-rerun">Rerun</button>
+		  </span>
+		</div>
+	      </div>
+	    </div>
+
+	    <div class="panel panel-default">
+	      <div class="disable-panel disable-until-run"></div>
+	      <div class="panel-heading">
+		<h4 class="panel-title">
+		  <span id="sources-title">Source(s)</span>
+		  <small id="run-language"></small>
+		</h4>
+	      </div>
+	      <div class="panel-body">
+		<div class="form-group">
+		  <select class="selectpicker form-control" id="source-to-view"></select>
+		</div>
+		<pre class="run-source"></pre>
+	      </div>
+	    </div>
+
+	    <div class="panel panel-warning">
+	      <div class="disable-panel disable-until-run"></div>
+	      <div class="panel-heading">
+		<h4 class="panel-title">Output</h4>
+	      </div>
+	      <div class="panel-body">
+		<pre class="run-output"></pre>
+	      </div>
+	      <div class="panel-footer">
+		<span class="compile-failure text-danger"></span>
+		<span class="badge exit-code" title="Exit code"></span> &nbsp;
+		<span class="pull-right" title="Execution time">
+		  <span class="glyphicon glyphicon-time"></span>
+		  <span class="runtime"></span>
+		</span>
+	      </div>
+	    </div>
+
+	    <div class="panel panel-info">
+	      <div class="disable-panel disable-until-run"></div>
+	      <div class="disable-panel disable-if-test"></div>
+	      <div class="panel-heading">
+		<h4 class="panel-title">Judgement</h4>
+	      </div>
+	      <div class="panel-body">
+		{% if viewname == "compete" %}
+		<h4 class="judgement-title"></h4>
+		<p class="judgement-notes"></p>
+		{% else %}
+		<div class="form-group">
+		  <select class="selectpicker form-control show-tick judgement-title"
+			  data-header="Select a judgement">
+		    <optgroup label="Program ran successfully">
+		      <option value="Correct">Correct answer/output</option>
+		      <option value="Incorrect">Incorrect answer/output</option>
+		    </optgroup>
+		    <optgroup label="Error while executing">
+		      <option>Runtime/program error</option>
+		      <option>Failed to compile</option>
+		      <option>Program execution time limit exceeded</option>
+		    </optgroup>
+		  </select>
+		</div>
+		<textarea class="form-control judgement-notes" rows="3"
+			  placeholder="Notes..."></textarea>
+		{% endif %}
+	      </div>
+	      <div class="panel-footer">
+		<span class="submitted-after"></span>
+		<button class="btn btn-default invisible">&nbsp;</button>
+		<span class="pull-right form-inline">
+		  <label for="run-score">Score:</label>
+		  <input size="2" id="run-score" class="form-control text-right"
+			 {% if viewname == "compete" %}readonly{% endif %} />
+		</span>
+	      </div>
+
 	    {% endblock %}
 	  </div>
 	</div>
@@ -197,18 +283,24 @@
   </div>
 </div>
 
-<div id="websocket-dialog" class="modal fade" data-backdrop="static" data-keyboard="false">
+<div id="websocket-overlay" class="modal fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-body">
-	Loading...
+	<span class="glyphicon glyphicon-dashboard" id="websocket-overlay-icon"></span>
+	<span id="websocket-overlay-text">Loading...</span><br>
+	<small id="websocket-overlay-reconnect"></small>
       </div>
     </div>
   </div>
 </div>
 
 {% block footer %}
-
+<script type="text/javascript">
+  var cid = {{ c.id }};
+  var mode = "{{ viewname }}";
+  var wsaddress = {{ wsaddress }};
+</script>
 {% endblock %}
 
 </div>

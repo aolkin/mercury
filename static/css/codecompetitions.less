@@ -123,7 +123,7 @@
 	}
     }
 
-    .panel-body {
+    .panel-body, .panel-footer, .panel-heading, .panel {
 	position: relative;
     }
     .disable-panel {
@@ -136,6 +136,58 @@
 	right: 0;
 	z-index: 9999;
 	cursor: not-allowed;
+
+	&.disable-if-test {
+	    display: none;
+	}
+    }
+
+    pre:empty {
+	display: none;
+    }
+    
+    pre {
+	max-height: 18em;
+
+	&:last-child {
+	    margin: 0;
+	}
+    }
+
+    .input-group button.selectpicker {
+	border-radius: 4px 0 0 4px;;
+    }
+
+    #contest-state {
+	font-weight: bold;
+    }
+
+    .problem-description:empty {
+	display: none;
+    }
+
+    .runtime:not(:empty):after {
+	content: " seconds";
+    }
+
+    .submitted-after:not(:empty):before {
+	content: "Submitted after ";
+    }
+
+    #run-language:not(:empty):before {
+	content: " – ";
+    }
+
+    textarea {
+	resize: none;
+    }
+
+    #websocket-overlay {
+	font-size: 1.5em;
+    }
+
+    #websocket-overlay-reconnect:empty {
+	display: hide;
     }
 
 }
