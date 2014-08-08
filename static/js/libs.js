@@ -34,4 +34,14 @@ String.prototype.format = function() {
     }.bind(this));
 };
 
+Number.prototype.toClockString = function() {
+    var hours = parseInt( this / 3600 ) % 24;
+    var minutes = parseInt( this / 60 ) % 60;
+    var seconds = this % 60;
+
+    return ((hours < 10 ? "0" + hours : hours) + ":" +
+	    (minutes < 10 ? "0" + minutes : minutes) + ":" +
+	    (seconds  < 10 ? "0" + seconds : seconds));
+}
+
 $(function(){$(".selectpicker").selectpicker({"mobile":true,"showSubtext":true});});

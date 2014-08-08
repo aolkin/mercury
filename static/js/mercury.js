@@ -8,10 +8,10 @@ function MercuryApplication() {
     this._initialized = false;
 
     for (i in this[name]) {
-	    if (typeof this[name][i] == "function") {
-		this[name][i] = this[name][i].bind(this[name]);
-	    }
+	if (typeof this[name][i] == "function") {
+	    this[name][i] = this[name][i].bind(this[name]);
 	}
+    }
 };
 
 MercuryApplication.prototype = {
