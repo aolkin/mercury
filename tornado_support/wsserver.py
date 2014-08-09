@@ -11,13 +11,15 @@ from importlib import import_module
 
 DEBUG = ("debug" in sys.argv) or settings.DEBUG
 
+WS_PREFIX = ("/" if DEBUG else "/ws/")
+
 handlers = []
 
 for i in settings.INSTALLED_APPS:
     try:
         module = import_module(i+".websockets")
         for url in module.urls:
-            url.regex = re.compile("/" + i + url.reverse())
+            url.regex = re.compile(WS_PREFIX + i + url.reverse())
         handlers += module.urls
     except ImportError:
         pass

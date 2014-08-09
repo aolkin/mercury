@@ -270,6 +270,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             pass
         
     def check_origin(self,origin):
+        return True
         if settings.DEBUG:
             return True
         else:
