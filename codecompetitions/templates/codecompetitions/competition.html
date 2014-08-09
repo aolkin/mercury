@@ -31,8 +31,8 @@
         <li {% if viewname == "admin" %}class="active"{% endif %}>
 	  <a href="{% url "codecompetitions.views.admin" c.id %}">Administrate</a></li>
 	{% endif %} {% endif %}
-        <li><a href="#{% url "codecompetitions.views.scoreboard" c.id %}" id="score-link">
-	    Scoreboard&nbsp;<span class="glyphicon glyphicon-new-window"></span></a></li>
+        <!--<li><a href="#{% url "codecompetitions.views.scoreboard" c.id %}" id="score-link">
+	    Scoreboard&nbsp;<span class="glyphicon glyphicon-new-window"></span></a></li>-->
 	<li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
 	    {{ request.user.first_name }} {{ request.user.last_name }}
@@ -87,6 +87,7 @@
 
 	    {% block left %}
 	    <div class="panel panel-default">
+	      <div class="disable-panel disable-until-running"></div>
 	      <div class="panel-heading">
 		<h3 class="problem-name panel-title">
 		  Select a Problem in <strong>{{ c.name }}</strong> to Begin</h3>
@@ -102,10 +103,13 @@
 	    </div>
 
 	    {% if viewname == "compete" %}
-	    <div class="panel panel-primary">
+	    <div class="panel panel-primary upload-panel">
 	      <div class="disable-panel disable-until-problem"></div>
 	      <div class="panel-heading">
 		<h4 class="panel-title">Upload New Code</h4>
+		<small class="upload-disabled-warning">
+		  Submissions will be accepted once the competition is started
+		</small>
 	      </div>
 	      <div class="panel-body">
 		<div class="form-group">
@@ -156,8 +160,16 @@
 			run from being judged or counted in your score)</small></em>
 		  </label>
 		</div>
-		<button class="form-control btn btn-primary" id="submit-new-code">
-		  Submit</button>
+		<div class="btn-group btn-group-justified">
+		  <div class="btn-group">
+		    <button class="btn btn-primary" id="reload-files">
+		      Reload Files</button>
+		  </div>
+		  <div class="btn-group">
+		    <button class="btn btn-primary" id="submit-new-code">
+		      Submit</button>
+		  </div>
+		</div>
 	      </div>
 	    </div>
 	    {% elif viewname == "judge" %}
@@ -195,7 +207,7 @@
 		<div class="input-group">
 		  <select class="selectpicker form-control" id="run-to-view"></select>
 		  <span class="input-group-btn">
-		    <button class="btn btn-default" id="schedule-rerun">Rerun</button>
+		    <button class="btn btn-default" id="request-run">Request Run</button>
 		  </span>
 		</div>
 	      </div>
@@ -206,7 +218,7 @@
 	      <div class="panel-heading">
 		<h4 class="panel-title">
 		  <span id="sources-title">Source(s)</span>
-		  <small id="run-language"></small>
+		  <span id="run-language" class="text-muted"></span>
 		</h4>
 	      </div>
 	      <div class="panel-body">
@@ -223,6 +235,9 @@
 		<h4 class="panel-title">Output</h4>
 	      </div>
 	      <div class="panel-body">
+		<div class="alert alert-warning only">
+		  <strong>Waiting to be run...</strong>
+		</div>
 		<pre class="run-output"></pre>
 	      </div>
 	      <div class="panel-footer">
@@ -271,16 +286,20 @@
 		  <label for="run-score">Score:</label>
 		  <input size="2" id="run-score" class="form-control text-right"
 			 {% if viewname == "compete" %}readonly{% endif %} />
+		  {% if viewname == "judge" %}
+		  <button class="btn btn-info" id="update-judgement">Save</button>
+		  {% endif %}
 		</span>
 	      </div>
-
+	    </div>
 	    {% endblock %}
 	  </div>
 	</div>
       </div>
     </div>
-
   </div>
+  
+  <div id="invisible-div" class="hide"></div>
 </div>
 
 <div id="websocket-overlay" class="modal fade" data-backdrop="static" data-keyboard="false">

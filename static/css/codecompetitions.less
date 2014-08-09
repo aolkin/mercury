@@ -140,6 +140,9 @@
 	&.disable-if-test {
 	    display: none;
 	}
+	&.disable-until-running {
+	    opacity: 1;
+	}
     }
 
     pre:empty {
@@ -190,4 +193,32 @@
 	display: hide;
     }
 
+    [data-growl="title"] {
+	font-weight: bold;
+	font-size: 1.1em;
+	
+	&:not(:empty):after {
+	    content: "\a";
+	    white-space: pre;
+	}
+	&:before {
+	    content: " ";
+	    white-space: pre;
+	}
+    }
+
+    [data-growl="container"] {
+	width: 320px;
+    }
+
+    .panel .alert.only {
+	margin-bottom: 0;
+    }
+
+}
+
+.cc-dialog-code {
+    word-wrap: initial;
+    word-break: initial;
+    max-height: 500px;
 }

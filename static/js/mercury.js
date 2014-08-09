@@ -56,11 +56,11 @@ function ModalApp() {
 ModalApp.prototype = {
     _showModal: function showModal(markup,callbacks) {
 	if (this._dialogIsOpen) {
-	    setTimeout(this._showModal.bind(this,markup,callbacks),100);
+	    setTimeout(this._showModal.bind(this,markup,callbacks),500);
 	    return false;
 	}
-	$("body").append(markup);
 	this._dialogIsOpen = true;
+	$("body").append(markup);
 	var modal = $(".mercury-modal-app-root").modal()
 	    .on("hidden.bs.modal", this._onHidden)
 	    .on("hide.bs.modal", callbacks["cancel"])

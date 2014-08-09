@@ -3,7 +3,7 @@ from tornado.ioloop import IOLoop
 from threading import Thread, main_thread
 from queue import PriorityQueue, Empty
 
-import time, os
+import time, os, types
 
 from .languages import LANGUAGES
 #from .models import *
@@ -19,11 +19,11 @@ class RunLoop(Thread):
                 priority, run, cb = self.queue.get(timeout=2)
                 self._do_run(run)
                 if cb:
-                    if type(cb) == function:
+                    if isinstance(cb, types.FunctionType):
                         IOLoop.current().add_callback(cb)
                     else:
                         if len(cb) < 3:
-                            cb.append({})
+                            cb = (cb[0],cb[1],{})
                         IOLoop.current().add_callback(cb[0],*cb[1],**cb[2])
                 self.queue.task_done()
             except Empty:
@@ -76,7 +76,7 @@ class RunLoop(Thread):
                     run.judgement = "Correct"
                     if run.time_to_submission:
                         run.score = round((run.problem.competition.original_time_left -
-                                           run.time_to_submission / 1000) / 60)
+                                           run.time_to_submission) / 60)
                     else:
                         run.score = 100
                 else:

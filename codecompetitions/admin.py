@@ -63,7 +63,7 @@ class ExtraInline(admin.TabularInline):
     extra = 0
 
 class RunAdmin(admin.ModelAdmin):
-    list_display = ("problem","user","number","language","has_been_run","is_a_test")
+    list_display = ("number","user","problem","language","has_been_run","is_a_test")
     list_filter = ("is_a_test","language","has_been_run","exit_code",
                    "time_of_submission","judgement")
     ordering = ("problem","user","number")

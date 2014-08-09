@@ -146,8 +146,7 @@ class Run(models.Model):
     exit_code = SmallIntegerField(null=True,blank=True)
     compiled_successfully = NullBooleanField()
 
-    time_to_submission = PositiveIntegerField(null=True,blank=True,
-                            help_text="in milliseconds, though not accurate to the millisecond")
+    time_to_submission = PositiveIntegerField(null=True,blank=True,help_text="in seconds")
     time_of_submission = DateTimeField(auto_now_add=True)
 
     judgement = CharField(max_length=120,null=True,blank=True)
@@ -163,6 +162,9 @@ class Run(models.Model):
 
     def __str__(self):
         return "Run {}".format(self.number)
+
+    def __lt__(self,o):
+        return False
 
 class ExtraFile(models.Model):
     file = FileField(upload_to=get_run_fn_extra,max_length=160,storage=run_storage)
