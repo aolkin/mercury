@@ -224,8 +224,8 @@ CompetitionApp.prototype = {
 				     (this.mode == "compete"?"<br><small>"+
 				      "Problem descriptions will become available " +
 				      "once the competition is started.</small>":""));
+	    $(".disable-until-running")[obj.running?"hide":"show"]();
 	    if (this.mode == "compete") {
-		$(".disable-until-running")[obj.running?"hide":"show"]();
 		$(".upload-disabled-warning")[obj.running?"hide":"show"]();
 		$(".upload-panel .panel-body")[obj.running?"show":"hide"]();
 	    }
