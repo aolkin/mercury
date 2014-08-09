@@ -43,6 +43,9 @@ def update_timers():
             if c.time_left < 1:
                 c.time_left = 0
                 c.running = False
+                competition = Competition.objects.get(pk=cid)
+                competition.paused_time_left = 0
+                competition.save()
         for i in listeners.competitions[cid].values():
             try:
                 i.write_message(c)
@@ -218,6 +221,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             data.icon = "saved"
         if obj.get("clock") and (self._competition.get_role(self.current_user) != "compete"):
             if obj["clock"] == "start":
+                self._competition = Competition.objects.get(pk=self.competition)
                 competitions[self.competition].end_time = (
                     time.time() + (self._competition.paused_time_left if
                                    self._competition.paused_time_left else
