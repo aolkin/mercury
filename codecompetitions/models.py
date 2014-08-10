@@ -82,7 +82,14 @@ class Competition(models.Model):
         if not hasattr(self,"_cached_role"):
             raise TypeError("Cache missing and no user supplied!")
         return self._cached_role
-            
+    
+    def get_role_class(self):
+        return ({
+            "compete": "info",
+            "judge": "warning",
+            "admin": "danger",
+        }[self.get_role()])
+
     def get_admins(self,string=True):
         return (self.admins.all() if not string else 
                 ", ".join(["{} {}".format(i.first_name,i.last_name) for i in self.admins.all()]))

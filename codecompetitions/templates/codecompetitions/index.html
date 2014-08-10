@@ -14,23 +14,44 @@
 
 <div class="list-group">
   {% for competition in competitions %}
-  <a href="{{ competition.get_absolute_url }}" class="list-group-item {% if competition.get_role == "judge" %}list-group-item-warning{% elif competition.get_role == "admin" %}list-group-item-danger{% endif %}">
-    <div class="media">
-      <div class="media-body">
-	<h4 class="media-heading"><big>{{ competition.name }} &ndash;</big>
-	   {{ competition.get_admins }}</h4>
-	{{ competition.description }}
-	{% if competition.get_role == "judge" %}
-	<div class="label label-warning pull-right">You may judge this competition.</div>
-	{% elif competition.get_role == "admin" %}
-	<div class="label label-danger pull-right">You may administrate this competition.</div>
+  <div class="list-group-item list-group-item-{{ competition.get_role_class }}">
+    <div class="btn-group pull-right">
+      <a href="{{ competition.get_absolute_url }}"
+	 class="btn btn-{{ competition.get_role_class }}">{{ competition.get_role|title }}</a>
+      <button class="btn btn-{{ competition.get_role_class }} dropdown-toggle"
+	      data-toggle="dropdown">
+	<span class="caret"></span>
+	<span class="sr-only">Toggle Dropdown</span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+	{% if competition.get_role != "compete" %}
+	<li>
+	  <a href="{% url 'codecompetitions.views.compete' competition.id %}"
+	     class="list-group-item-info">Compete</a>
+	</li>
 	{% endif %}
-      </div>
+	{% if competition.get_role == "admin" %}
+	<li>
+	  <a href="{% url 'codecompetitions.views.judge' competition.id %}"
+	     class="list-group-item-warning">Judge</a>
+	</li>
+	{% endif %}
+	<li>
+	  <a href="{% url 'codecompetitions.views.scoreboard' competition.id %}"
+	     class="list-group-item-success">Scoreboard</a>
+	</li>
+      </ul>
     </div>
-  </a>
+
+    <h4 class="media-heading">
+      <big>{{ competition.name }} &ndash;</big>
+      {{ competition.get_admins }}
+    </h4>
+    {{ competition.description|default:'<small class="text-muted">This competition has no description.</small>' }}
+  </div>
   {% empty %}
   <div class="alert alert-info">
-    <strong>Whoops, no competitions have been created!</strong>
+    <strong>Whoops, no competitions are in existence!</strong>
   </div>
   {% endfor %}
 </div>

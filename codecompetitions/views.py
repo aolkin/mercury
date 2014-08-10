@@ -50,4 +50,14 @@ def default(request,cid):
     return redirect("codecompetitions.views."+c.get_role(request.user),cid)
 
 def scoreboard(request,cid=None):
-    return render(request, "codecompetitions/score.html")
+    if cid:
+        c = Competition.objects.get(id=cid)
+        c.get_role(request.user)
+        fields = Problem.objects.filter(
+            competition=c).order_by("id").values_list("name",flat=True)
+    else:
+        c = None
+        fields = Competition.objects.all().order_by("id").values_list("name",flat=True)
+    popup = bool(request.GET.get("popup"))
+    return render(request, "codecompetitions/score.html",
+                  {"c": c, "popup": popup, "fields": fields})

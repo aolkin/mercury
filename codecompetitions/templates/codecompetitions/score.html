@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{{ c.name|default:"Global" }} | Scoreboard | Coding Competitions | {{ options.site_title }}{% endblock %}
+
+{% block body %}
+<div class="codecompetitions-scoreboard">
+
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand"{% if not popup %} href="{% url "codecompetitions.views.index" %}"
+	 title="Back to Competition List">
+	<span class="glyphicon glyphicon-circle-arrow-left"></span>&nbsp;
+	Competitions / {% else %}>{% endif %}
+	{{ c.name|default:"Global" }} {% if c %}&ndash;{% endif %} Scoreboard
+      </a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav navbar-right">
+	{% if c.get_role != "compete" and not popup %}
+	<li class="nav-button">
+	  <button class="btn btn-success" id="start-timer" disabled>Start</button>
+	</li>
+	<li class="nav-button">
+	  <button class="btn btn-danger" id="stop-timer" disabled>Stop</button>
+	</li>
+	{% endif %}
+	{% if not popup %}
+	{% if c %}
+        <li><a href="{% url "codecompetitions.views.compete" c.id %}">Compete</a></li>
+	{% if c.get_role != "compete" %}
+        <li><a href="{% url "codecompetitions.views.judge" c.id %}">Judge</a></li>
+	{% endif %}
+	{% if c.get_role == "admin" %}
+        <li><a href="{% url "codecompetitions.views.admin" c.id %}">Administrate</a></li>
+	{% endif %}
+	{% endif %}
+	{% endif %}
+	{% if c %}
+        <li>
+	  <a href="{% url "codecompetitions.views.scoreboard" %}{% if popup %}?popup=1{% endif %}">Global Scoreboard
+	  </a>
+	</li>
+	{% endif %}
+	{% if popup %}
+        <li>
+	  <a id="close-popup">Close Window&nbsp;
+	    <span class="glyphicon glyphicon-remove-sign"></span>
+	  </a>
+	</li>
+	{% else %}
+	<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+	    {{ request.user.first_name }} {{ request.user.last_name }}
+	    <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+	    <!--<li class="disabled"><a>{{ request.user.username }}</a></li>-->
+	    {% if c %}
+	    <li class="disabled"><a>{{ c.get_role.title }} for this Competition</a></li>
+            <li class="divider"></li>
+	    {% endif %}
+            <li><a href="{% url "logout" %}">Logout</a></li>
+          </ul>
+        </li>
+	{% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<div class="content container-fluid">
+
+  {% if c %}
+  <div class="well well-sm container-fluid state-well">
+    <div class="row sr-only">
+      <div class="col-sm-4">Contest State</div>
+      <div class="col-sm-4">Remaining Time</div>
+      <div class="col-sm-4">Contest Length</div>
+    </div>
+    <div class="row state-value-fields">
+      <div class="col-sm-4 contest-state" title="Contest State">
+	<span class="glyphicon glyphicon-off"></span>
+	<span id="contest-state">Loading...</span>
+      </div>
+      <div class="col-sm-4 remaining-time" title="Remaining Time">
+	<span class="glyphicon glyphicon-time"></span>
+	<span id="remaining-time">{{ c.remaining_time }}</span>
+      </div>
+      <div class="col-sm-4 contest-length" title="Contest Length">
+	<span class="glyphicon glyphicon-certificate"></span>
+	<span id="contest-length">{{ c.contest_length }}</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="panel panel-primary table-responsive">
+    <table class="table table-striped">
+      <thead>
+	<tr>
+	  <th>Rank</th>
+	  <th>Player Name</th>
+	  <th>Total Score</th>
+	  <th title="per {% if c %}problem{% else %}competition{% endif %}">Average Score</th>
+	  {% for i in fields %}
+	  <th class="text-primary">{{ i }}</th>
+	  {% endfor %}
+	</tr>
+      </thead>
+      <tbody id="main-board">
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="websocket-overlay" class="modal fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+	<span class="glyphicon glyphicon-dashboard" id="websocket-overlay-icon"></span>
+	<span id="websocket-overlay-text">Loading...</span><br>
+	<small id="websocket-overlay-reconnect"></small>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script type="text/javascript">
+  var cid = {{ c.id|default:"'global'" }};
+  var wsaddress = {{ wsaddress }};
+</script>
+{% endblock %}

@@ -1,29 +1,4 @@
 .codecompetitions {
-
-    .navbar-fixed-top {
-	.navbar-brand {
-	    .glyphicon {
-		visibility: hidden;
-	    }
-	    &:hover .glyphicon {
-		visibility: visible;
-	    }
-	    small {
-		font-size: 0.6em;
-	    }
-	}
-
-	.disabled * {
-	    cursor: default;
-	}
-    }
-
-    .sidebar, .content {
-	position: fixed;
-	top: 51px;
-	bottom: 0;
-	overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-    }
     .sidebar {
 	left: 0;
 	padding: 1em 20px;
@@ -185,6 +160,45 @@
 	resize: none;
     }
 
+    .panel .alert.only {
+	margin-bottom: 0;
+    }
+
+}
+
+.cc-dialog-code {
+    word-wrap: initial;
+    word-break: initial;
+    max-height: 500px;
+}
+
+.codecompetitions, .codecompetitions-scoreboard {
+
+    .navbar-fixed-top {
+	.navbar-brand {
+	    .glyphicon {
+		visibility: hidden;
+	    }
+	    &:hover .glyphicon {
+		visibility: visible;
+	    }
+	    small {
+		font-size: 0.6em;
+	    }
+	}
+
+	.disabled * {
+	    cursor: default;
+	}
+    }
+
+    .sidebar, .content {
+	position: fixed;
+	top: 51px;
+	bottom: 0;
+	overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    }
+
     #websocket-overlay {
 	font-size: 1.5em;
     }
@@ -210,15 +224,30 @@
     [data-growl="container"] {
 	width: 320px;
     }
-
-    .panel .alert.only {
-	margin-bottom: 0;
-    }
-
 }
 
-.cc-dialog-code {
-    word-wrap: initial;
-    word-break: initial;
-    max-height: 500px;
+.codecompetitions-scoreboard {
+
+    .content {
+	margin-top: 10px;
+	width: 100%;
+    }
+
+    .state-well {
+	text-align: center;
+
+	.state-value-fields {
+	    font-weight: bold;
+	    font-size: 1.1em;
+	}
+
+	.remaining-time {
+	    font-size: 1.1em;
+	}
+    }
+
+    .nav-button {
+	margin: 8px;
+    }
+
 }

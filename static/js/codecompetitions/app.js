@@ -41,7 +41,7 @@ CompetitionApp.prototype = {
 	});
     },
     _open_scoreboard: function open_scoreboard(e) {
-	this.scoreboard = open(e.target.href,"scoreboard","height=600,width=800");
+	this.scoreboard = open(e.target.href+"?popup=1","scoreboard","height=600,width=800");
 	this.scoreboard.focus();
 	e.preventDefault();
 	return false;

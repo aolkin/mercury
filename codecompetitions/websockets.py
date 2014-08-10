@@ -30,8 +30,10 @@ defaultdict_list = lambda: defaultdict(list)
 listeners = ObjectDict()
 listeners.competitions = defaultdict(defaultdict_list)
 listeners.problems = defaultdict(defaultdict_list)
+listeners.scoreboards = defaultdict(list)
 
 competitions = defaultdict(ObjectDict)
+competition_scores = defaultdict(ObjectDict)
 
 def load_competition(cid):
     if not competitions.get(cid):
@@ -43,6 +45,42 @@ def load_competition(cid):
                                           .timestamp())
         else:
             competitions[cid].running = False
+        IOLoop.current().add_callback(load_competition_scores,cid)
+    else:
+        return True
+
+def send_scores(cid):
+    for i in listeners.scoreboards[cid]:
+        i.write_message({
+            "scores": sorted(competition_scores[cid].scores.values(),
+                             key=lambda x: x.total_score, reverse=True),
+            "debug": settings.DEBUG
+        })
+
+def update_score(u,cid,initial=False):
+    c = competition_scores[cid]
+    c.scores[u].player = get_full_name(User.objects.get(id=u))
+    runs = [Run.objects.filter(user=u, problem=p,
+                               score__isnull=False).order_by("-number")[0]
+            for p in Run.objects.filter(
+                    is_a_test=False, problem__competition=cid, user=u,
+                    score__isnull=False).distinct().values_list("problem",flat=True)]
+    c.scores[u].total_score = sum([i.score for i in runs])
+    c.scores[u].average_score = round(c.scores[u].total_score / len(runs), 2)
+    c.scores[u].problems = defaultdict(ObjectDict)
+    for run in runs:
+        c.scores[u].problems[c.problems.index(run.problem_id)].score = run.score
+    if not initial:
+        send_scores(cid)
+
+def load_competition_scores(cid):
+    c = competition_scores[cid]
+    c.scores = defaultdict(ObjectDict)
+    c.problems = list(Problem.objects.filter(competition=cid).values_list("id",flat=True))
+    for u in Run.objects.filter(problem__competition=cid,
+                                is_a_test=False).distinct().values_list("user",flat=True):
+        update_score(u,cid,True)
+    send_scores(cid)
 
 def update_timers():
     for cid, c in competitions.items():
@@ -54,15 +92,29 @@ def update_timers():
                 competition = Competition.objects.get(pk=cid)
                 competition.paused_time_left = 0
                 competition.save()
-        for i in listeners.competitions[cid].values():
-            for ws in i:
-                try:
-                    ws.write_message(c)
-                except WebSocketClosedError:
-                    pass
+        for i in [i for l in listeners.competitions[cid].values() for i in l]:
+            try:
+                i.write_message(c)
+            except WebSocketClosedError:
+                pass
     IOLoop.current().call_later(1,update_timers)
 
 IOLoop.current().call_later(1,update_timers)
+
+def competition_clock_operation(op,c):
+    if op == "start":
+        c = Competition.objects.get(pk=c.id)
+        competitions[c.id].end_time = (
+            time.time() + (c.paused_time_left if
+                           c.paused_time_left else
+                           c.original_time_left))
+        c.start_time = datetime.datetime.now(datetime.timezone.utc)
+        competitions[c.id].running = True
+    if op == "stop":
+        competitions[c.id].running = False
+        c.paused_time_left = competitions[c.id].time_left
+        c.start_time = None
+    c.save()
 
 def get_players(problem):
     players = Run.objects.filter(problem=problem).distinct().values_list("user",flat=True)
@@ -199,6 +251,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             run.score = obj["score"]
             run.notes = obj["notes"]
             run.save()
+            update_score(run.user_id,self.competition)
             
             run_users = [i for i in listeners.competitions[self.competition].get(run.user_id,[])
                         if i.mode == "compete"]
@@ -216,7 +269,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                     "link": "#{}-&&{}".format(run.problem_id, run.id),
                     "icon": "star",
                 })
-            for listener in listeners.problems[self.problem].get(run.user_id):
+            for listener in listeners.problems[self.problem].get(run.user_id,[]):
                 listener.write_message({
                     "runs": get_runs_for_player(self.problem,run.user_id)
                 })
@@ -246,19 +299,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             data.icon = "saved"
         
         if obj.get("clock") and (self._competition.get_role(self.current_user) != "compete"):
-            if obj["clock"] == "start":
-                self._competition = Competition.objects.get(pk=self.competition)
-                competitions[self.competition].end_time = (
-                    time.time() + (self._competition.paused_time_left if
-                                   self._competition.paused_time_left else
-                                   self._competition.original_time_left))
-                self._competition.start_time = datetime.datetime.now(datetime.timezone.utc)
-                competitions[self.competition].running = True
-            if obj["clock"] == "stop":
-                competitions[self.competition].running = False
-                self._competition.paused_time_left = competitions[self.competition].time_left
-                self._competition.start_time = None
-            self._competition.save()
+            competition_clock_operation(obj["clock"],self._competition)
 
         if len(data) > 0:
             try:
@@ -313,8 +354,57 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                 listeners.competitions[self.competition][self.current_user.id].remove(self)
             if hasattr(self,"_problem"):
                 listeners.problems[self.problem][self.current_user.id].remove(self)
-        except KeyError:
+        except ValueError:
             pass
+        
+    def check_origin(self,origin):
+        return True
+        if settings.DEBUG:
+            return True
+        else:
+            return super().check_origin(origin)
+
+class ScoreboardHandler(DjangoUserMixin,WebSocketHandler):
+    def open(self):
+        self.get_current_user()
+        self.competition = None
+
+    def on_message(self,message):
+        if not self.current_user.is_authenticated():
+            self.write_message({"error": "logged_out"})
+            return False
+
+        obj = loads(message)
+        data = ObjectDict()
+
+        if settings.DEBUG:
+            print(obj)
+            data.debug = True
+        
+        if obj.get("competition"):
+            if obj["competition"] == "global":
+                self.competition = "global"
+                IOLoop.current().add_callback(load_competition_scores,self.competition)
+            else:
+                self.competition = obj["competition"]
+                self._competition = Competition.objects.get(pk=self.competition)
+                listeners.competitions[self.competition][self.current_user.id].append(self)
+                if load_competition(self.competition):
+                    IOLoop.current().add_callback(send_scores,self.competition)
+            listeners.scoreboards[self.competition].append(self)
+        
+        if obj.get("clock") and (self._competition.get_role(self.current_user) != "compete"):
+            competition_clock_operation(obj["clock"],self._competition)
+
+        self.write_message(data)
+
+    def on_close(self):
+        try:
+            if hasattr(self,"competition"):
+                listeners.scoreboards[self.competition].remove(self)
+                listeners.competitions[self.competition][self.current_user.id].remove(self)
+        except ValueError:
+            pass        
         
     def check_origin(self,origin):
         return True
@@ -332,12 +422,14 @@ class RequestRunHandler(RequestHandler):
         else:
             self.write("Nothing to run")
 
+URLS = [
+        url(r"/scoreboard/", ScoreboardHandler),
+        url(r"/", CompetitionHandler),
+]
+
 if settings.DEBUG:
     urls = [
         url(r"/dorun", RequestRunHandler),
-        url(r"/", CompetitionHandler),
-    ]
+    ] + URLS
 else:
-    urls = [
-        url(r"/", CompetitionHandler),
-    ]
+    urls = URLS
