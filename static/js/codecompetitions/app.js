@@ -286,6 +286,7 @@ CompetitionApp.prototype = {
 	    }
 	    var select = $("#run-to-view");
 	    var selected = select.val();
+	    var lastid = 0;
 	    select.empty();
 	    if (obj.runs.length > 0) {
 		for (var i in this.runs) {
@@ -294,11 +295,15 @@ CompetitionApp.prototype = {
 			.text("Run " + run.number).appendTo(select).
 			data("icon",run.is_a_test?"glyphicon-flag":
 			     (run.has_been_run?"glyphicon-check":""));
+		    lastid = run.id;
 		}
 		if (obj.echo !== undefined && obj.echo.run !== undefined) {
 		    selected = obj.echo.run;
 		}
 		select.val(selected);
+		if (select.val() != selected) {
+		    select.val(lastid);
+		}
 		setTimeout(this._select_run,0);
 	    } else {
 		$(".disable-until-run").show();

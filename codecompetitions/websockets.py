@@ -254,7 +254,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             update_score(run.user_id,self.competition)
             
             run_users = [i for i in listeners.competitions[self.competition].get(run.user_id,[])
-                        if i.mode == "compete"]
+                         if (hasattr(i,"mode") and i.mode == "compete")]
             for run_user in run_users:
                 if run_user.problem == run.problem_id:
                     problem_text = ""
@@ -308,6 +308,8 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                 pass
 
     def run_complete(self,run,requester=False):
+        if (not run.is_a_test) and run.score != None:
+            IOLoop.current().add_callback(update_score, run.user_id, run.problem.competition_id)
         if self.mode == "compete":
             if requester:
                 message = "Execution of Run #{} (requested by {}) was completed {}.".format(
