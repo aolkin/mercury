@@ -25,9 +25,11 @@ def get_full_name(user):
 runloop = RunLoop()
 runloop.start()
 
+defaultdict_list = lambda: defaultdict(list)
+
 listeners = ObjectDict()
-listeners.competitions = defaultdict(dict)
-listeners.problems = defaultdict(dict)
+listeners.competitions = defaultdict(defaultdict_list)
+listeners.problems = defaultdict(defaultdict_list)
 
 competitions = defaultdict(ObjectDict)
 
@@ -53,10 +55,11 @@ def update_timers():
                 competition.paused_time_left = 0
                 competition.save()
         for i in listeners.competitions[cid].values():
-            try:
-                i.write_message(c)
-            except WebSocketClosedError:
-                pass
+            for ws in i:
+                try:
+                    ws.write_message(c)
+                except WebSocketClosedError:
+                    pass
     IOLoop.current().call_later(1,update_timers)
 
 IOLoop.current().call_later(1,update_timers)
@@ -114,27 +117,27 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
 
         if obj.get("echo"):
             data.echo = obj["echo"]
+        
         if obj.get("competition"):
             self.competition = obj["competition"]
-            if listeners.competitions[self.competition].get(self.current_user.id):
-                self.write_message({"error":"competition_open_elsewhere"})
-                return False
             self._competition = Competition.objects.get(pk=self.competition)
-            listeners.competitions[self.competition][self.current_user.id] = self
+            listeners.competitions[self.competition][self.current_user.id].append(self)
             load_competition(self.competition)
+        
         if obj.get("mode"):
             if (obj["mode"] != "compete" and
                 self._competition.get_role(self.current_user) == "compete"):
                 data.error = "Unauthorized mode"
             else:
                 self.mode = obj["mode"]
+        
         if obj.get("problem"):
             if obj["problem"] != self.problem:
                 if self.problem:
-                    del listeners.problems[self.problem][self.current_user.id]
+                    listeners.problems[self.problem][self.current_user.id].remove(self)
                 self.problem = obj["problem"]
                 self._problem = Problem.objects.get(pk=self.problem)
-                listeners.problems[self.problem][self.current_user.id] = self
+                listeners.problems[self.problem][self.current_user.id].append(self)
             data.problem_name = self._problem.name
             data.description = self._problem.description
             if self.mode == "compete":
@@ -142,10 +145,12 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             elif self._competition.get_role(self.current_user) != "compete":
                 data.expected_output = self._problem.expected_output
                 data.players = get_players(self.problem)
+        
         if obj.get("player") and self._competition.get_role(self.current_user) != "compete":
             if obj["player"] != self.player:
                 self.player = int(obj["player"])
                 data.runs = get_runs_for_player(self.problem,self.player)
+        
         if obj.get("main_file"):
             last_run = Run.objects.filter(user=self.current_user.id,
                                           problem=self.problem).order_by("-number")
@@ -169,10 +174,10 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
 
             if len(data.runs) == 1:
                 for i in listeners.problems[self.problem].values():
-                    if i.mode == "judge":
-                        i.write_message({"players": get_players(self.problem)})
+                    for j in [j for j in i if j.mode == "judge"]:
+                        j.write_message({"players": get_players(self.problem)})
             else:
-                for i in listeners.problems[self.problem].values():
+                for i in [i for l in listeners.problems[self.problem].values() for i in l]:
                     if i.player == self.current_user.id:
                         if run.is_a_test:
                             i.write_message({
@@ -187,6 +192,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                                 "icon": "send",
                             })
             runloop.request_run(run,(self.run_complete,(run,)))
+        
         if obj.get("judgement"):
             run = Run.objects.get(pk=obj["run"])
             run.judgement = obj["judgement"]
@@ -194,8 +200,9 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             run.notes = obj["notes"]
             run.save()
             
-            run_user = listeners.competitions[self.competition].get(run.user_id)
-            if run_user:
+            run_users = [i for i in listeners.competitions[self.competition].get(run.user_id,[])
+                        if i.mode == "compete"]
+            for run_user in run_users:
                 if run_user.problem == run.problem_id:
                     problem_text = ""
                 else:
@@ -209,8 +216,8 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                     "link": "#{}-&&{}".format(run.problem_id, run.id),
                     "icon": "star",
                 })
-            if listeners.problems[self.problem].get(run.user_id):
-                listeners.problems[self.problem][run.user_id].write_message({
+            for listener in listeners.problems[self.problem].get(run.user_id):
+                listener.write_message({
                     "runs": get_runs_for_player(self.problem,run.user_id)
                 })
             data.notify = "Saved judgement for {}'s Run #{}".format(
@@ -218,13 +225,18 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             data.notif_title = "Saved Judgement"
             data.notif_type = "info"
             data.icon = "saved"
+        
         if obj.get("request"):
             run = Run.objects.get(pk=obj["request"])
-            if self.mode != "compete" and listeners.problems[run.problem_id].get(run.user_id):
-                handler = listeners.problems[run.problem_id][run.user_id]
+            players = [i for i in listeners.problems[run.problem_id]
+                       .get(run.user_id,[]) if i.mode == "compete"]
+            if self.mode != "compete" and len(players) > 0:
+                handlers = players
             else:
-                handler = self
-            runloop.request_run(run, (handler.run_complete,(run,)),
+                handlers = [self]
+            runloop.request_run(run, ((lambda handlers, run, u:
+                                       [handler.run_complete(run, u) for handler in handlers]),
+                                      (handlers, run, get_full_name(self.current_user))),
                                 4 if self.mode == "compete" else 3)
             data.notify = "Run requested for {}Run #{}.".format(
                 (get_full_name(run.user) + "'s " if self.mode != "compete"
@@ -232,6 +244,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             data.notif_title = "Run Requested"
             data.notif_type = "info"
             data.icon = "saved"
+        
         if obj.get("clock") and (self._competition.get_role(self.current_user) != "compete"):
             if obj["clock"] == "start":
                 self._competition = Competition.objects.get(pk=self.competition)
@@ -253,28 +266,41 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             except WebSocketClosedError:
                 pass
 
-    def run_complete(self,run):
-        self.write_message({
-            "runs": get_runs_for_player(run.problem_id, run.user_id),
-            "notify": "Run #{} was executed {}.".format(
-                run.number, "successfully" if run.exit_code == 0 else "unsuccessfully"),
-            "notif_type": "success" if run.exit_code == 0 else "danger",
-            "notif_title": "Run #{} Execution Complete".format(run.number),
-            "link": "#{}-&&{}".format(run.problem_id, run.id),
-            "icon": "tasks",
-        })
-        for i in listeners.problems[run.problem_id].values():
+    def run_complete(self,run,requester=False):
+        if self.mode == "compete":
+            if requester:
+                message = "Execution of Run #{} (requested by {}) was completed {}.".format(
+                    run.number, requester,
+                    "successfully" if run.exit_code == 0 else "unsuccessfully")
+            else:
+                message = "Run #{} was executed {}.".format(
+                    run.number, "successfully" if run.exit_code == 0 else "unsuccessfully")
+            self.write_message({
+                "runs": get_runs_for_player(run.problem_id, run.user_id),
+                "notify": message,
+                "notif_type": "success" if run.exit_code == 0 else "danger",
+                "notif_title": "Run #{} Execution Complete".format(run.number),
+                "link": "#{}-&&{}".format(run.problem_id, run.id),
+                "icon": "tasks",
+            })
+        if requester:
+            message = "Execution of {}'s Run #{} (requested by {}) was completed {}.".format(
+                get_full_name(self.current_user), run.number, requester,
+                "successfully" if run.exit_code == 0 else "unsuccessfully")
+        else:
+            message = "{}'s Run #{} was executed {}.".format(
+                get_full_name(self.current_user), run.number,
+                "successfully" if run.exit_code == 0 else "unsuccessfully")
+        for i in [i for l in listeners.problems[run.problem_id].values() for i in l]:
             if i.player == self.current_user.id:
-                if run.is_a_test:
+                if (not requester) and run.is_a_test:
                     i.write_message({
                         "runs": get_runs_for_player(run.problem_id, run.user_id),
                     })
                 else:
                     i.write_message({
                         "runs": get_runs_for_player(run.problem_id, run.user_id),
-                        "notify": "{}'s Run #{} was executed {}.".format(
-                            get_full_name(self.current_user), run.number,
-                            "successfully" if run.exit_code == 0 else "unsuccessfully"),
+                        "notify": message,
                         "notif_type": "success" if run.exit_code == 0 else "danger",
                         "notif_title": "Run #{} Execution Complete".format(run.number),
                         "link": "#{}-&&{}".format(run.problem_id, run.id),
@@ -284,9 +310,9 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
     def on_close(self):
         try:
             if hasattr(self,"_competition"):
-                del listeners.competitions[self.competition][self.current_user.id]
+                listeners.competitions[self.competition][self.current_user.id].remove(self)
             if hasattr(self,"_problem"):
-                del listeners.problems[self.problem][self.current_user.id]
+                listeners.problems[self.problem][self.current_user.id].remove(self)
         except KeyError:
             pass
         

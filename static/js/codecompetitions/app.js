@@ -226,19 +226,6 @@ CompetitionApp.prototype = {
 		Mercury.Modal.alert("You are no longer logged in. Press okay to re-login.",
 				    "Logged Out", location.reload.bind(location));
 	    }
-	    if (obj.error === "competition_open_elsewhere") {
-		Mercury.Modal.confirm("You already have this competition open elsewhere. " +
-				      "Please close the other window or tab then press okay " +
-				      "to reload this page.", "Competition Open Elsewhere",
-				      "Okay", "Exit Competition", function(okay) {
-					  if (okay) {
-					      location.reload();
-					  } else {
-					      location.assign(location.pathname.split("/")
-							      .slice(0,-4).join("/")+"/")
-					  }
-				      });
-	    }
 	    return false;
 	}
 	
