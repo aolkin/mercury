@@ -26,7 +26,9 @@ CompetitionApp.prototype = {
 	    $("#start-timer").click(this._start_timer);
 	    $("#stop-timer").click(this._stop_timer);
 	}
-	$("#request-run").click(this._request_run);
+	$("#request-run").click(this._request_run).attr("disabled",true);
+	$("#score-link").click(this._open_scoreboard);
+	$(window).on("beforeunload",this._close_scoreboard);
 
 	$.growl(false, {
 	    element: ".codecompetitions",
@@ -37,6 +39,15 @@ CompetitionApp.prototype = {
 	    },
 	    url_target: '_self',
 	});
+    },
+    _open_scoreboard: function open_scoreboard(e) {
+	this.scoreboard = open(e.target.href,"scoreboard","height=600,width=800");
+	this.scoreboard.focus();
+	e.preventDefault();
+	return false;
+    },
+    _close_scoreboard: function close_scoreboard() {
+	this.scoreboard.close();
     },
     _start_timer: function start_timer() {
 	this.send({clock:"start"});
@@ -62,8 +73,8 @@ CompetitionApp.prototype = {
     },
     _submit_code: function submit_code() {
 	if (!($("#main-file").data("readers") && $("#main-file").data("readers").length)) {
-	    Mercury.Modal.alert("No main file selected! Please select your program's main file.",
-				"No File Selected!");
+	    Mercury.Modal.alert("No main file selected! Please select your program's " +
+				"main file.", "No File Selected!");
 	    return false;
 	}
 	if ($("#main-file").data("readers")[0].readyState === FileReader.DONE) {
@@ -144,6 +155,7 @@ CompetitionApp.prototype = {
     },
     _select_run: function select_run() {
 	$(".disable-until-run").hide();
+	$("#request-run").removeAttr("disabled");
 	var run = this.runs[$("#run-to-view").val()];
 	this.run = run;
 	var new_url = "#" + $(".active [data-problem]").data("problem") + "-&&" + run.id;
@@ -208,6 +220,27 @@ CompetitionApp.prototype = {
     _ws_message: function onmessage(e) {
 	var obj = JSON.parse(e.data);
 	if (obj.debug) { console.log(obj); }
+
+	if (obj.error) {
+	    if (obj.error === "logged_out") {
+		Mercury.Modal.alert("You are no longer logged in. Press okay to re-login.",
+				    "Logged Out", location.reload.bind(location));
+	    }
+	    if (obj.error === "competition_open_elsewhere") {
+		Mercury.Modal.confirm("You already have this competition open elsewhere. " +
+				      "Please close the other window or tab then press okay " +
+				      "to reload this page.", "Competition Open Elsewhere",
+				      "Okay", "Exit Competition", function(okay) {
+					  if (okay) {
+					      location.reload();
+					  } else {
+					      location.assign(location.pathname.split("/")
+							      .slice(0,-4).join("/")+"/")
+					  }
+				      });
+	    }
+	    return false;
+	}
 	
 	if (obj.description !== undefined) {
 	    $(".disable-until-problem").hide();
@@ -306,7 +339,7 @@ CompetitionApp.prototype = {
 		url: obj.link
 	    }, {
 		type: obj.notif_type || "success",
-		delay: obj.link ? null : 6000
+		delay: obj.link ? 8000 : 4000
 	    });
 	    if (obj.link) {
 		growl.$template.click(( function(){this.close()} ).bind(growl))

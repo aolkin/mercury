@@ -31,8 +31,8 @@
         <li {% if viewname == "admin" %}class="active"{% endif %}>
 	  <a href="{% url "codecompetitions.views.admin" c.id %}">Administrate</a></li>
 	{% endif %} {% endif %}
-        <!--<li><a href="#{% url "codecompetitions.views.scoreboard" c.id %}" id="score-link">
-	    Scoreboard&nbsp;<span class="glyphicon glyphicon-new-window"></span></a></li>-->
+        <li><a href="{% url "codecompetitions.views.scoreboard" c.id %}" id="score-link">
+	    Scoreboard&nbsp;<span class="glyphicon glyphicon-new-window"></span></a></li>
 	<li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
 	    {{ request.user.first_name }} {{ request.user.last_name }}

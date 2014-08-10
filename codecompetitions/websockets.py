@@ -34,7 +34,13 @@ competitions = defaultdict(ObjectDict)
 def load_competition(cid):
     if not competitions.get(cid):
         c = Competition.objects.get(pk=cid)
-        competitions[c.id].running = False
+        if c.start_time:
+            competitions[cid].running = True
+            competitions[cid].end_time = ((c.start_time + datetime.timedelta(
+                seconds = c.paused_time_left if c.paused_time_left else c.original_time_left))
+                                          .timestamp())
+        else:
+            competitions[cid].running = False
 
 def update_timers():
     for cid, c in competitions.items():
@@ -95,6 +101,10 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
         self.mode = "compete"
 
     def on_message(self,message):
+        if not self.current_user.is_authenticated():
+            self.write_message({"error": "logged_out"})
+            return False
+
         obj = loads(message)
         data = ObjectDict()
 
@@ -106,6 +116,9 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             data.echo = obj["echo"]
         if obj.get("competition"):
             self.competition = obj["competition"]
+            if listeners.competitions[self.competition].get(self.current_user.id):
+                self.write_message({"error":"competition_open_elsewhere"})
+                return False
             self._competition = Competition.objects.get(pk=self.competition)
             listeners.competitions[self.competition][self.current_user.id] = self
             load_competition(self.competition)
@@ -226,15 +239,19 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                     time.time() + (self._competition.paused_time_left if
                                    self._competition.paused_time_left else
                                    self._competition.original_time_left))
-                self._competition.start_time = datetime.datetime.now()
+                self._competition.start_time = datetime.datetime.now(datetime.timezone.utc)
                 competitions[self.competition].running = True
             if obj["clock"] == "stop":
                 competitions[self.competition].running = False
                 self._competition.paused_time_left = competitions[self.competition].time_left
+                self._competition.start_time = None
             self._competition.save()
 
         if len(data) > 0:
-            self.write_message(data)
+            try:
+                self.write_message(data)
+            except WebSocketClosedError:
+                pass
 
     def run_complete(self,run):
         self.write_message({
@@ -266,11 +283,11 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
 
     def on_close(self):
         try:
-            if self.competition:
+            if hasattr(self,"_competition"):
                 del listeners.competitions[self.competition][self.current_user.id]
-            if self.problem:
+            if hasattr(self,"_problem"):
                 del listeners.problems[self.problem][self.current_user.id]
-        except ValueError:
+        except KeyError:
             pass
         
     def check_origin(self,origin):
