@@ -14,10 +14,10 @@
 
 <div class="list-group">
   {% for competition in competitions %}
-  <div class="list-group-item list-group-item-{{ competition.get_role_class }}">
+  <div class="list-group-item list-group-item-{{ competition.get_role_class }} code-competition-item">
     <div class="btn-group pull-right">
       <a href="{{ competition.get_absolute_url }}"
-	 class="btn btn-{{ competition.get_role_class }}">{{ competition.get_role|title }}</a>
+	 class="btn btn-{{ competition.get_role_class }} main-link">{{ competition.get_role|title }}</a>
       <button class="btn btn-{{ competition.get_role_class }} dropdown-toggle"
 	      data-toggle="dropdown">
 	<span class="caret"></span>

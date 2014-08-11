@@ -69,6 +69,8 @@ class RunAdmin(admin.ModelAdmin):
     ordering = ("problem","user","number")
     inlines = [ ExtraInline ]
 
+    save_on_top = True
+
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(Competition, CompetitionAdmin)
 admin.site.register(Problem, ProblemAdmin)

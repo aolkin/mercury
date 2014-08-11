@@ -50,35 +50,55 @@ def load_competition(cid):
         return True
 
 def send_scores(cid):
+    scores = sorted([i for i in competition_scores[cid].scores.values()],
+                    key=lambda x: x.total_score, reverse=True)
     for i in listeners.scoreboards[cid]:
+        print("Sending scores:",scores)
         i.write_message({
-            "scores": sorted(competition_scores[cid].scores.values(),
-                             key=lambda x: x.total_score, reverse=True),
+            "scores": scores,
             "debug": settings.DEBUG
         })
 
 def update_score(u,cid,initial=False):
     c = competition_scores[cid]
     c.scores[u].player = get_full_name(User.objects.get(id=u))
-    runs = [Run.objects.filter(user=u, problem=p,
-                               score__isnull=False).order_by("-number")[0]
-            for p in Run.objects.filter(
-                    is_a_test=False, problem__competition=cid, user=u,
-                    score__isnull=False).distinct().values_list("problem",flat=True)]
-    c.scores[u].total_score = sum([i.score for i in runs])
-    c.scores[u].average_score = round(c.scores[u].total_score / len(runs), 2)
+    c.scores[u].cid = cid
+    if cid == "global":
+        for i in c.problems:
+            load_competition_scores(i)
+        runs = [competition_scores[i].scores[u] for i in competition_scores
+                if (i != "global" and competition_scores[i].scores[u].get("cid"))]
+    else:
+        runs = [Run.objects.filter(user=u, problem=p,
+                                   score__isnull=False).order_by("-number")[0]
+                for p in Run.objects.filter(
+                        is_a_test=False, problem__competition=cid, user=u,
+                        score__isnull=False).distinct().values_list("problem",flat=True)]
+    c.scores[u].total_score = sum([i.score if hasattr(i,"score") else i.total_score for i in runs])
+    if cid == "global":
+        total = len([i for i in runs if i.get("cid")])
+    else:
+        total = len(runs)
+    c.scores[u].average_score = round(c.scores[u].total_score / total, 2)
     c.scores[u].problems = defaultdict(ObjectDict)
     for run in runs:
-        c.scores[u].problems[c.problems.index(run.problem_id)].score = run.score
+        if cid == "global":
+            c.scores[u].problems[c.problems.index(run.cid)].score = run.total_score
+        else:
+            c.scores[u].problems[c.problems.index(run.problem_id)].score = run.score
     if not initial:
         send_scores(cid)
 
 def load_competition_scores(cid):
     c = competition_scores[cid]
     c.scores = defaultdict(ObjectDict)
-    c.problems = list(Problem.objects.filter(competition=cid).values_list("id",flat=True))
-    for u in Run.objects.filter(problem__competition=cid,
-                                is_a_test=False).distinct().values_list("user",flat=True):
+    if cid == "global":
+        c.problems = list(Competition.objects.all().order_by("id").values_list("id",flat=True))
+        runset = Run.objects.filter(is_a_test=False)
+    else:
+        c.problems = list(Problem.objects.filter(competition=cid).values_list("id",flat=True))
+        runset = Run.objects.filter(problem__competition=cid, is_a_test=False)
+    for u in runset.distinct().values_list("user",flat=True):
         update_score(u,cid,True)
     send_scores(cid)
 

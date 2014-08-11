@@ -24,7 +24,7 @@
     </div>
     <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-	{% if c.get_role != "compete" and not popup %}
+	{% if c and c.get_role != "compete" and not popup %}
 	<li class="nav-button">
 	  <button class="btn btn-success" id="start-timer" disabled>Start</button>
 	</li>
