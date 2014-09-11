@@ -3,4 +3,4 @@
 	url = https://github.com/twbs/bootstrap.git
 [submodule "config"]
 	path = config
-	url = git@github.com:baryon5/config.git
+	url = https://github.com/baryon5/config.git
