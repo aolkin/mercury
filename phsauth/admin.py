@@ -52,8 +52,10 @@ class SchoolFilter(admin.SimpleListFilter):
             return queryset.filter(school=LDAPGroup.objects.get(id=self.value()))
 
 class StudentAdmin(UserAdmin):
-    list_display = ("username","first_name","last_name","school","is_staff")
-    list_filter = ("kind","is_staff",SchoolFilter,HRFilter)
+    list_display = ("username", "first_name", "last_name", "school",
+                    "graduation_year", "is_staff")
+    list_filter = ("kind", "is_staff", "graduation_year",
+                   SchoolFilter, HRFilter)
 
 admin.site.register(LDAPGroup,GroupAdmin)
 admin.site.register(LDAPUser,UserAdmin)

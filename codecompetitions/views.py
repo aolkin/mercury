@@ -19,7 +19,8 @@ def index(request):
     for i in competitionset:
         if (i.get_role(request.user) in ("admin","judge")) or is_accessible(i,request.user):
             competitions.append(i)
-    return render(request, "codecompetitions/index.html", {"competitions":competitions})
+    return render(request, "codecompetitions/index.html", {"competitions": competitions,
+                                                           "admin": request.user.is_staff})
 
 def compete(request,cid):
     c = Competition.objects.get(id=cid)

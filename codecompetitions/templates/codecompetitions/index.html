@@ -7,6 +7,7 @@
 {% block content %}
 <div class="page-header">
   <a href="{% url "logout" %}" class="btn btn-lg btn-primary pull-right">Logout</a>
+  {% if admin %}<a href="{% url "admin:codecompetitions_competition_add" %}" class="btn btn-lg btn-success pull-right" style="margin-right: 1em;">New Competition</a>{% endif %}
   <h1>Coding Competitions on {{ options.site_title }}</h1>
 </div>
 
