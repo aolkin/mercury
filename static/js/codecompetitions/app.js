@@ -15,9 +15,9 @@ CompetitionApp.prototype = {
 	if (this.mode === "compete") {
 	    $("#submit-new-code").click(this._submit_code);
 	    $("#reload-files").click(function(){
-		$("#main-file").trigger("change");
-		$("#extra-files").trigger("change");
-	    });
+                $("#main-file").trigger("change");
+                $("#extra-files").trigger("change");
+            });
 	} else {
 	    $("#player-to-judge").change(this._select_player);
 	    $("#update-judgement").click(this._update_judgement);
@@ -135,6 +135,7 @@ CompetitionApp.prototype = {
     _do_submit: function do_submit(perform_action) {
 	if (perform_action) {
 	    this.send(this.data_to_submit);
+	    $(".btn-file :file").val(null).change();
 	}
     },
     _load_problem: function load_problem() {
