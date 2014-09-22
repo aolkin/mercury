@@ -63,7 +63,7 @@ class Competition(models.Model):
         ordering = ("-start_time","-date_modified")
 
     def get_absolute_url(self):
-        return reverse("codecompetitions.views.judge",args=(self.id,))
+        return reverse("codecompetitions.views.default",args=(self.id,))
 
     def __str__(self):
         return self.name

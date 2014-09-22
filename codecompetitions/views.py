@@ -48,7 +48,10 @@ def admin(request,cid):
 
 def default(request,cid):
     c = Competition.objects.get(id=cid)
-    return redirect("codecompetitions.views."+c.get_role(request.user),cid)
+    if c.get_role(request.user) == "admin":
+        return redirect("codecompetitions.views.judge",cid)
+    else:
+        return redirect("codecompetitions.views."+c.get_role(),cid)
 
 def scoreboard(request,cid=None):
     if cid:

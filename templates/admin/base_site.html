@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | Mercury Django Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">Mercury Django Administration</a></h1>
+{% endblock %}
+
+{% block nav-global %}
+<style type="text/css">
+  .ml {margin:0 10px 10px;display:block;float:left}
+</style>
+<div style="margin-top: 1em">
+  <a href="/" class="ml">Return to Site</a>
+  <a href="{% url "admin:index" %}" class="ml">Admin Home</a>
+  <a href="{% url "admin:config_config_changelist" %}" class="ml">Global Options</a>
+</div>
+{% endblock %}
