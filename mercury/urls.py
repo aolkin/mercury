@@ -4,10 +4,10 @@ from django.views.generic import RedirectView
 
 from django.conf import settings
 
-from config import config
+from config import uncached_config
 
 urlpatterns = patterns('',
-    url(r'^$', RedirectView.as_view(url=config.get("main_url","/admin/config/config/main_url/"),permanent=False)),
+    url(r'^$', RedirectView.as_view(url=uncached_config.get("main_url","/admin/config/config/main_url/"),permanent=False)),
 
     url(r'^favicon\.ico$', RedirectView.as_view(url=settings.STATIC_URL+"favicon.ico")),
 
