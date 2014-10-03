@@ -114,6 +114,7 @@ class Problem(models.Model):
     auto_judge = BooleanField(default=True)
     time_limit = PositiveIntegerField(default=5,help_text="in seconds")
     expected_output = TextField()
+    sample_input_data = TextField(null=True,blank=True)
     input_data = TextField(null=True,blank=True)
     read_from_file = CharField(max_length=80,null=True,blank=True,
                                help_text="If specified, the input data will be placed into " +

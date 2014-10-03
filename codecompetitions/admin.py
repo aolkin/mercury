@@ -20,7 +20,7 @@ class ProblemInline(admin.StackedInline):
             'classes': ('collapse',)
         }),
         ("Input and Expected Output", {
-            'fields': ('expected_output', 'input_data', 'read_from_file'),
+            'fields': ('expected_output', 'input_data', 'sample_input_data', 'read_from_file'),
             'classes': ('collapse',)
         }),
     )

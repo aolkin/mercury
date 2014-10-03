@@ -70,7 +70,8 @@ def update_score(u,cid,initial=False):
                 if (i != "global" and competition_scores[i].scores[u].get("cid"))]
     else:
         runs = [Run.objects.filter(user=u, problem=p,
-                                   score__isnull=False).order_by("-number")[0]
+                                   score__isnull=False,
+                                   is_a_test=False).order_by("-number")[0]
                 for p in Run.objects.filter(
                         is_a_test=False, problem__competition=cid, user=u,
                         score__isnull=False).distinct().values_list("problem",flat=True)]
@@ -96,7 +97,8 @@ def load_competition_scores(cid):
         c.problems = list(Competition.objects.all().order_by("id").values_list("id",flat=True))
         runset = Run.objects.filter(is_a_test=False)
     else:
-        c.problems = list(Problem.objects.filter(competition=cid).values_list("id",flat=True))
+        c.problems = list(Problem.objects.filter(competition=cid).order_by("id")
+                          .values_list("id",flat=True))
         runset = Run.objects.filter(problem__competition=cid, is_a_test=False)
     for u in runset.distinct().values_list("user",flat=True):
         update_score(u,cid,True)

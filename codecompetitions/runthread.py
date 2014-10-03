@@ -36,14 +36,17 @@ class RunLoop(Thread):
         lang = LANGUAGES[run.language.index]
         fn = run.main_file.path
 
+        input_data = (run.problem.sample_input_data if
+                      (run.is_a_test and run.problem.sample_input_data) else
+                      run.problem.input_data)
         in_data = None
-        if run.problem.input_data:
+        if input_data:
             if run.problem.read_from_file:
                 fd = open(os.path.join(os.path.dirname(fn),run.problem.read_from_file),"w")
-                fd.write(run.problem.input_data)
+                fd.write(input_data)
                 fd.close()
             else:
-                in_data = run.problem.input_data
+                in_data = input_data
 
         code, out = lang.compile(fn)
         if code == 0:

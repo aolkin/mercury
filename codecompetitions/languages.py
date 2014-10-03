@@ -7,21 +7,21 @@ import os
 from os.path import dirname, basename
 
 def depriviledge():
-    try:
-        os.setgid(settings.UNPRIVILEDGED_UID)
-        os.setuid(settings.UNPRIVILEDGED_UID)
-    except Exception as err:
-        print(repr(err))
+    os.setgid(settings.UNPRIVILEDGED_UID)
+    os.setuid(settings.UNPRIVILEDGED_UID)
 
-def run_process(*args,**kwargs):
+def void():
+    pass
+
+def run_process(*args, unsafe=True, **kwargs):
     try:
         return (0, check_output(args, stderr=STDOUT, universal_newlines=True,
-                                preexec_fn=depriviledge, **kwargs).strip())
+                                preexec_fn=depriviledge if unsafe else void, **kwargs).strip())
     except CalledProcessError as err:
         return (err.returncode, err.output.strip())
 
 def get_output(*args,**kwargs):
-    return run_process(*args,**kwargs)[1]
+    return run_process(*args, unsafe=False, **kwargs)[1]
 
 class Language:
     _run_command = "true"
