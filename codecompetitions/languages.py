@@ -1,11 +1,22 @@
 
 from subprocess import *
 
+from django.conf import settings
+
+import os
 from os.path import dirname, basename
+
+def depriviledge():
+    try:
+        os.setgid(settings.UNPRIVILEDGED_UID)
+        os.setuid(settings.UNPRIVILEDGED_UID)
+    except Exception as err:
+        print(repr(err))
 
 def run_process(*args,**kwargs):
     try:
-        return (0, check_output(args,stderr=STDOUT,universal_newlines=True,**kwargs).strip())
+        return (0, check_output(args, stderr=STDOUT, universal_newlines=True,
+                                preexec_fn=depriviledge, **kwargs).strip())
     except CalledProcessError as err:
         return (err.returncode, err.output.strip())
 

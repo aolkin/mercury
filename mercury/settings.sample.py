@@ -134,6 +134,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR,"managed_resources/mediafiles")
 
 PRIVATE_ROOT = os.path.join(BASE_DIR,"privatefiles")
 
+UNPRIVILEDGED_UID = 1000
+
 LDAP_SERVER = ""
 LDAP_SEARCH_BASE = ""
 LDAP_MASTER_USERNAME = ""
