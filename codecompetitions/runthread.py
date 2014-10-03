@@ -6,7 +6,7 @@ from queue import PriorityQueue, Empty
 import time, os, types
 
 from .languages import LANGUAGES
-#from .models import *
+from subprocess import TimeoutExpired
 
 class RunLoop(Thread):
     def __init__(self,*args,**kwargs):
@@ -57,6 +57,7 @@ class RunLoop(Thread):
                 after = time.time()
                 run.runtime = (after - before) * 1000
             except TimeoutExpired as err:
+                run.runtime = run.problem.time_limit * 1000
                 code = -1
                 out = "Execution time limit reached."
         else:

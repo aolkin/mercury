@@ -41,7 +41,8 @@ class Language:
         self._version = "Dummy Language, v1.0"
 
     def compile(self,sourcefn):
-        return run_process(self._compile_command, basename(sourcefn), cwd=dirname(sourcefn))
+        return run_process(self._compile_command, basename(sourcefn),
+                           cwd=dirname(sourcefn), unsafe=False)
 
     def run(self,sourcefn,input=None,timeout=None):
         return run_process(self._run_command, self.get_compiled_name(sourcefn),
