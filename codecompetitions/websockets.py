@@ -51,9 +51,11 @@ def load_competition(cid):
 
 def send_scores(cid):
     scores = sorted([i for i in competition_scores[cid].scores.values()],
-                    key=lambda x: x.total_score, reverse=True)
+                    key=lambda x: (x.total_score if hasattr(x,"total_score") else
+                                   (x.score if hasattr(x,"score") else 0)), reverse=True)
     for i in listeners.scoreboards[cid]:
-        print("Sending scores:",scores)
+        if settings.DEBUG:
+            print("Sending scores:",scores)
         i.write_message({
             "scores": scores,
             "debug": settings.DEBUG
