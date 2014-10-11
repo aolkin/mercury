@@ -80,9 +80,10 @@ class RunLoop(Thread):
                     run.judgement = "Correct"
                     if run.time_to_submission:
                         run.score = round((run.problem.competition.original_time_left -
-                                           run.time_to_submission) / 60) * 10
+                                           run.time_to_submission) /
+                                          run.problem.competition.original_time_left * 1000)
                     else:
-                        run.score = 100
+                        run.score = 1000
                 else:
                     run.judgement = "Incorrect"
                     run.score = 0
