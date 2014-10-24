@@ -82,6 +82,7 @@ def update_score(u,cid,initial=False):
         total = len([i for i in runs if i.get("cid")])
     else:
         total = len(runs)
+    total = (total if total else 1)
     c.scores[u].average_score = round(c.scores[u].total_score / total, 2)
     c.scores[u].problems = defaultdict(ObjectDict)
     for run in runs:

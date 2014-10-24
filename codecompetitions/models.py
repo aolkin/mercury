@@ -173,6 +173,9 @@ class Run(models.Model):
 
     def __lt__(self,o):
         return False
+    
+    def __eq__(self,o):
+        return False
 
 class ExtraFile(models.Model):
     file = FileField(upload_to=get_run_fn_extra,max_length=160,storage=run_storage)
