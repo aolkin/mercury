@@ -232,7 +232,7 @@ CompetitionApp.prototype = {
 	
 	if (obj.description !== undefined) {
 	    $(".disable-until-problem").hide();
-	    $(".problem-description").html(obj.description);
+	    $(".problem-description").html(obj.description).addClass("describing");
 	}
 	if (obj.problem_name !== undefined) {
 	    $(".problem-name").html(obj.problem_name);
