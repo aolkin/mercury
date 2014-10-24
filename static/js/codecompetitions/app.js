@@ -159,10 +159,15 @@ CompetitionApp.prototype = {
 	$("#request-run").removeAttr("disabled");
 	var run = this.runs[$("#run-to-view").val()];
 	this.run = run;
-	var new_url = "#" + $(".active [data-problem]").data("problem") + "-&&" + run.id;
-	if (new_url !== location.href) {
-	    //console.log(new_url,location.href);
-	    history.pushState(null,null,new_url);
+	var newpid = $(".active [data-problem]").data("problem");
+	var new_url = "#" + newpid + "-&&" + run.id;
+	if (new_url !== location.hash) {
+	    var second = decodeURIComponent(location.hash).substr(1).split("-",2)[1];
+	    if (second && second.substring(0,2) === "&&") {
+		history.pushState(null,null,new_url);
+	    } else {
+		location.replace(new_url);
+	    }
 	}
 	$(".run-output").text(run.output)
 	    .siblings(".alert")[run.has_been_run?"hide":"show"]();
@@ -243,7 +248,7 @@ CompetitionApp.prototype = {
 	if (obj.running !== undefined) {
 	    $("#contest-state").html(obj.running?"Running":"Stopped" +
 				     (this.mode == "compete"?"<br><small>"+
-				      "Problem descriptions will become available " +
+				      "Problems will become available " +
 				      "once the competition is started.</small>":""));
 	    $(".disable-until-running")[obj.running?"hide":"show"]();
 	    if (this.mode == "compete") {

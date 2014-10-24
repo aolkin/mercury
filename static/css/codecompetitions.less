@@ -102,7 +102,7 @@
 	}
     }
 
-    .panel-body, .panel-footer, .panel-heading, .panel {
+    .panel-body, .panel-footer, .panel-heading, .panel, .disableable {
 	position: relative;
     }
     .disable-panel {
@@ -121,6 +121,14 @@
 	}
 	&.disable-until-running {
 	    opacity: 1;
+	}
+    }
+    ul.disableable li.header {
+	z-index: 2000;
+    }
+    &.is-admin, &.is-judge {
+	.disable-panel.disable-until-running {
+	    display: none !important;
 	}
     }
 

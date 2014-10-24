@@ -3,7 +3,7 @@
 {% block title %}{{ viewname.title }}: {{ c.name }} | Coding Competitions | {{ options.site_title }}{% endblock %}
 
 {% block body %}
-<div class="codecompetitions">
+<div class="codecompetitions is-{{ viewname.title|lower }}">
 
 <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container-fluid">
@@ -65,7 +65,8 @@
 	    {% endif %}
 	    <li><a id="contest-state">Loading Contest...</a></li>
           </ul>
-          <ul class="nav nav-sidebar navbar-nav">
+          <ul class="nav nav-sidebar navbar-nav disableable">
+	    <div class="disable-panel disable-until-running"></div>
 	    <li class="header"><a>Problems <span class="badge" id="problem-count">
 		  {{ c.problem_set.count }}</span></a></li>
 	    {% for p in c.problem_set.all %}
