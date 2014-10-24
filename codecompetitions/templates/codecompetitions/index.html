@@ -48,7 +48,7 @@
       <big>{{ competition.name }} &ndash;</big>
       {{ competition.get_admins }}
     </h4>
-    {{ competition.description|default:'<small class="text-muted">This competition has no description.</small>' }}
+    <div class="competition-description">{{ competition.description|default:'<small class="text-muted">This competition has no description.</small>' }}</div>
   </div>
   {% empty %}
   <div class="alert alert-info">
