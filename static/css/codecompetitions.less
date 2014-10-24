@@ -62,12 +62,18 @@
 	margin: -1em 0;
     }
     
-    .problem-description .list-group {
-	margin-bottom: 0px;
-    }
+    .problem-description {
+	.list-group {
+	    margin-bottom: 0px;
+	}
 
-    .problem-description.describing {
-	white-space: pre-line;
+	&.describing {
+	    white-space: pre-line;
+	    
+	    pre {
+		margin: 10px 16px -0.6em;
+	    }
+	}
     }
 
     .bootstrap-select.btn-group {
