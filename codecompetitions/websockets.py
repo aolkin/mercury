@@ -146,13 +146,16 @@ def get_players(problem):
     users = [User.objects.filter(pk=i) for i in players]
     return [i.values("first_name","last_name","id")[0] for i in users]
 
-def get_runs_for_player(problem,user):
+def get_runs_for_player(problem, user, judge=True):
     runs = Run.objects.filter(problem=problem, user=user).values(
         "id", "number", "language", "is_a_test", "has_been_run",
         "output", "runtime", "exit_code", "compiled_successfully",
         "time_to_submission", "judgement", "notes", "score")
     runlist = []
     for i in runs:
+        if not (judge or i["exit_code"] or i["is_a_test"]):
+            i["output"] = "(Output hidden to prevent cheating.)"
+
         run = Run.objects.get(pk=i["id"])
         i["language"] = run.language.version
         try:
@@ -218,7 +221,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             data.problem_name = self._problem.name
             data.description = self._problem.description
             if self.mode == "compete":
-                data.runs = get_runs_for_player(self.problem,self.current_user.id)
+                data.runs = get_runs_for_player(self.problem, self.current_user.id, False)
             elif self._competition.get_role(self.current_user) != "compete":
                 data.expected_output = self._problem.expected_output
                 data.players = get_players(self.problem)
@@ -226,7 +229,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
         if obj.get("player") and self._competition.get_role(self.current_user) != "compete":
             if obj["player"] != self.player:
                 self.player = int(obj["player"])
-                data.runs = get_runs_for_player(self.problem,self.player)
+                data.runs = get_runs_for_player(self.problem, self.player, True)
         
         if obj.get("main_file"):
             last_run = Run.objects.filter(user=self.current_user.id,
@@ -247,7 +250,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                 extra_file.file.save(i["name"],
                                      ContentFile(i["contents"].replace("\r","")))
             data.upload = {"id": run.id, "number": run.number}
-            data.runs = get_runs_for_player(self.problem,self.current_user.id)
+            data.runs = get_runs_for_player(self.problem, self.current_user.id, False)
 
             if len(data.runs) == 1:
                 for i in listeners.problems[self.problem].values():
@@ -296,7 +299,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                 })
             for listener in listeners.problems[self.problem].get(run.user_id,[]):
                 listener.write_message({
-                    "runs": get_runs_for_player(self.problem,run.user_id)
+                    "runs": get_runs_for_player(self.problem, run.user_id, self.mode == "judge")
                 })
             data.notify = "Saved judgement for {}'s Run #{}".format(
                 get_full_name(run.user), run.number)
@@ -344,7 +347,7 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
                 message = "Run #{} was executed {}.".format(
                     run.number, "successfully" if run.exit_code == 0 else "unsuccessfully")
             self.write_message({
-                "runs": get_runs_for_player(run.problem_id, run.user_id),
+                "runs": get_runs_for_player(run.problem_id, run.user_id, False),
                 "notify": message,
                 "notif_type": "success" if run.exit_code == 0 else "danger",
                 "notif_title": "Run #{} Execution Complete".format(run.number),
@@ -363,11 +366,11 @@ class CompetitionHandler(DjangoUserMixin,WebSocketHandler):
             if i.player == self.current_user.id:
                 if (not requester) and run.is_a_test:
                     i.write_message({
-                        "runs": get_runs_for_player(run.problem_id, run.user_id),
+                        "runs": get_runs_for_player(run.problem_id, run.user_id, True),
                     })
                 else:
                     i.write_message({
-                        "runs": get_runs_for_player(run.problem_id, run.user_id),
+                        "runs": get_runs_for_player(run.problem_id, run.user_id, True),
                         "notify": message,
                         "notif_type": "success" if run.exit_code == 0 else "danger",
                         "notif_title": "Run #{} Execution Complete".format(run.number),
