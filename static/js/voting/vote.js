@@ -11,11 +11,17 @@ VotingApp.prototype = {
     },
     setRank: function setRank(e) {
 	var el = $(e.target);
+	var question = this.questions[el.data("question")];
+	for (q in question) {
+	    if (question[q] == el.data("choice")) {
+		question[q] = false;
+	    }
+	}
 	el.siblings(".btn-primary").removeClass("btn-primary").addClass("btn-default");
 	$("button[data-question="+el.data("question")+"][data-number="+el.data("number")+"]")
 	    .removeClass("btn-primary").addClass("btn-default");
 	el.removeClass("btn-default").addClass("btn-primary");
-	this.questions[el.data("question")][el.data("number")] = el.data("choice");
+	question[el.data("number")] = el.data("choice");
     },
     _getQuestions: function getQuestions(index,el) {
 	this.questions[$(el).data("question")] = {1: null, 2: null, 3: null};
