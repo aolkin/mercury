@@ -34,10 +34,10 @@ class VoteObject(models.Model):
 
 class Poll(VoteObject):
     admins = models.ManyToManyField(User)
-    viewers = models.ManyToManyField(User,related_name="view_only_users",blank=True,null=True)
+    viewers = models.ManyToManyField(User,related_name="view_only_users",blank=True)
     begin_date = models.DateTimeField(blank=True,null=True)
     end_date = models.DateTimeField(blank=True,null=True)
-    restrict_to = models.ManyToManyField(Group,blank=True,null=True)
+    restrict_to = models.ManyToManyField(Group,blank=True)
     allow_edits = models.BooleanField(default=False)
     display_mode = models.PositiveSmallIntegerField(default=0,choices=(
         (0,"Normal"),

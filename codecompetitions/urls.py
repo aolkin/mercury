@@ -2,7 +2,7 @@ from django.conf.urls import patterns, url
 
 from . import views
 
-urlpatterns = patterns('',
+urlpatterns = (
     url('^$', views.index),
     url('^competition/(\d+)/$', views.default),
     url('^competition/(\d+)/compete/$', views.compete),

@@ -22,8 +22,6 @@ SECRET_KEY = ''
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True or os.environ.get("DJANGO_DEBUG") # Change for production
 
-TEMPLATE_DEBUG = DEBUG
-
 ALLOWED_HOSTS = ["*"]
 
 
@@ -61,23 +59,31 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-TEMPLATE_DIRS = (
-    'templates',
-)
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.tz",
-    "django.core.context_processors.request",
-    "django.contrib.messages.context_processors.messages",
-    "config.context_processors.configuration",
-    "mercury.context_processors.base",
-    #"mercury.context_processors.sidebar",
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            'templates',
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                "config.context_processors.configuration",
+                "mercury.context_processors.base",
+                #"mercury.context_processors.sidebar",
+            ],
+        },
+    },
+]
 
 ROOT_URLCONF = 'mercury.urls'
 
