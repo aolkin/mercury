@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 from django.core.urlresolvers import reverse
 
@@ -82,9 +83,9 @@ class Question(VoteObject):
         (0, "Highest Wins"),
         (1, "IRV"),
         (2, "Fill-in"),
+        (3, "Highest Points"),
     ))
     choices = models.ManyToManyField(Choice)
-    choice_type = models.ForeignKey(ContentType,blank=True,null=True)
 
 class Response(models.Model):
     user = models.ForeignKey(User)
@@ -96,3 +97,8 @@ class Response(models.Model):
         return "{user}'s response to {question}: {choice} ({choice_extra})".format(
             user=self.user.get_full_name(), question=self.question,
             choice=self.choice, choice_extra=self.choice_extra)
+
+class HighestPointsOptions(models.Model):
+    question = models.OneToOneField(Question, models.CASCADE)
+    points = ArrayField(models.PositiveIntegerField())
+    winners = models.PositiveSmallIntegerField()

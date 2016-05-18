@@ -9,6 +9,12 @@ from django.forms.widgets import TextInput
 
 from .models import *
 
+class HighestPointsOptionsInline(admin.StackedInline):
+    model = HighestPointsOptions
+    min_num = 0
+    extra = 0
+    max_num = 1
+
 class QuestionInline(admin.TabularInline):
     model = Question
     fields = ('name', 'desc', 'image', 'kind', 'choices')
@@ -47,10 +53,11 @@ class ResponseInline(admin.TabularInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [
+        HighestPointsOptionsInline,
         ResponseInline,
     ]
-    readonly_fields = ("poll",)
-    exclude = ("kind","choices")
+    readonly_fields = ("poll","kind")
+    exclude = ("choices",)
     list_display = ("poll","name","_imghtml")
     list_display_links = ("name",)
 
