@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 def login_page(request):
     context = { "path": request.GET.get("next","/") }
     username = request.POST.get("username")
+    username = username.lower() if username else None
     password = request.POST.get("password")
     context["username"] = username if username else ""
     user = authenticate(username=username,password=password)
