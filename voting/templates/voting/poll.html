@@ -46,6 +46,27 @@
 
     {% elif question.kind == 2 %}
     <!-- Fill in (text box) -->
+
+    {% elif question.kind == 3 or question.kind == 4 %} <!-- STV/Points -->
+    <div class="stv-container">
+      <div class="well well-lg list-group" data-question="{{ question.pk }}">
+	<h4>Select your first, second, and third choices:</h4>
+
+	  {% for choice in question.choices.all %}
+	  <div class="list-group-item">
+	    <span class="stv-text" title="{{ choice.desc }}">{{ choice.name }}</span>
+	    <div class="stv-choices pull-right btn-group">
+	      {% for i in "123" %}
+	      <button type="button" class="btn btn-default" data-number="{{ i }}"
+		      data-question="{{ question.pk }}"
+		      data-choice="{{ choice.pk }}">{{ i }}</button>
+	      {% endfor %}
+	    </div>
+	  </div>
+	  {% endfor %}
+      </div>
+    </div>
+
     {% endif %}
   </div>
 </div>

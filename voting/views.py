@@ -44,9 +44,9 @@ def vote(request,id_):
             raise VotingNotAllowedError("You are not allowed to vote in {} poll!")
         if not poll.enabled:
             raise VotingNotAllowedError("{} poll is not available.")
-        if poll.end_date < timezone.now():
+        if poll.end_date and poll.end_date < timezone.now():
             raise VotingNotAllowedError("{} poll has been closed.")
-        if poll.begin_date > timezone.now():
+        if poll.begin_date and poll.begin_date > timezone.now():
             raise VotingNotAllowedError("{} poll is not open yet.")
         if not poll.user_allowed(request.user):
             raise VotingNotAllowedError("You have already submitted your vote and you may not change it.")
@@ -62,11 +62,12 @@ def vote(request,id_):
     if request.method == "POST" and request.is_ajax():
         for question, res in json.loads(request.POST["data"]).items():
             for i, choice in res.items():
-                obj, created = Response.objects.get_or_create(user=request.user,
-                                                              question_id=int(question),
-                                                              choice_extra=i)
-                obj.choice_id = choice
-                obj.save()
+                if choice:
+                    obj, created = Response.objects.get_or_create(user=request.user,
+                                                                  question_id=int(question),
+                                                                  choice_extra=i)
+                    obj.choice_id = choice
+                    obj.save()
         messages.success(request,'Thanks for voting! Don\'t forget to <a href="{}">log out</a> when you are done.'.format(reverse("logout")),extra_tags="html-safe")
         return JsonResponse({"success":True,"redirect":reverse(index)})
 

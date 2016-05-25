@@ -83,7 +83,8 @@ class Question(VoteObject):
         (0, "Highest Wins"),
         (1, "IRV"),
         (2, "Fill-in"),
-        (3, "Highest Points"),
+        (3, "STV"),
+        (4, "Highest Points"),
     ))
     choices = models.ManyToManyField(Choice)
 
