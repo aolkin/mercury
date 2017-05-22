@@ -22,7 +22,22 @@
   </div>
   <div class="panel-body">
     {% if question.kind == 0 %}
-    <!-- Highest wins (radio buttons?) -->
+    <div class="hw-container">
+      <div class="well well-lg list-group" data-question="{{ question.pk }}">
+	      <h4>Select three options.</h4>
+
+	      {% for choice in question.choices.all %}
+    	  <div class="list-group-item">
+    	    <span class="hw-text" title="{{ choice.desc }}">{{ choice.name }}</span>
+    	    <div class="hw-choices pull-right btn-group">
+    	      <button type="button" class="btn btn-default"
+    		      data-question="{{ question.pk }}"
+    		      data-choice="{{ choice.pk }}">&nbsp;</button>
+    	    </div>
+    	  </div>
+    	  {% endfor %}
+      </div>
+    </div>
 
     {% elif question.kind == 1 %} <!-- IRV -->
     <div class="irv-container">
@@ -33,7 +48,7 @@
 	  <div class="list-group-item">
 	    <span class="irv-text" title="{{ choice.desc }}">{{ choice.name }}</span>
 	    <div class="irv-choices pull-right btn-group">
-	      {% for i in "123" %}
+	      {% for i in "012" %}
 	      <button type="button" class="btn btn-default" data-number="{{ i }}"
 		      data-question="{{ question.pk }}"
 		      data-choice="{{ choice.pk }}">{{ i }}</button>
@@ -56,7 +71,7 @@
 	  <div class="list-group-item">
 	    <span class="stv-text" title="{{ choice.desc }}">{{ choice.name }}</span>
 	    <div class="stv-choices pull-right btn-group">
-	      {% for i in "123" %}
+	      {% for i in "012" %}
 	      <button type="button" class="btn btn-default" data-number="{{ i }}"
 		      data-question="{{ question.pk }}"
 		      data-choice="{{ choice.pk }}">{{ i }}</button>

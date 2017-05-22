@@ -11,21 +11,29 @@
     max-height: (@voting-image-size / 2);
 }
 
-.irv-container, .stv-container {
+.irv-container, .stv-container, .hw-container {
 
     .list-group-item {
 	height: 4em;
 
-	.irv-text, .stv-text {
+	.irv-text, .stv-text, .hw-text {
 	    display: inline-block;
 	    margin-top: 0.5em;
 	}
-	
+
 	.irv-choices, .stv-choices {
 	    width: 50%;
 
 	    button {
 		min-width: 33.33%;
+	    }
+	}
+
+    .hw-choices {
+	    width: 20%;
+
+	    button {
+		min-width: 100%;
 	    }
 	}
     }

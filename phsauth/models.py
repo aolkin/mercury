@@ -1,3 +1,5 @@
+import re
+
 from django.db import models
 
 from django.conf import settings
@@ -63,6 +65,7 @@ class LDAPUser(User):
 
         self.dn = attrs["distinguishedName"]
         self.kind = attrs["description"]
+        self.kind = 'Student' if self.kind == 'Students' else self.kind
         self.home_dir = attrs.get("homeDirectory","")
 
         self.save()
@@ -77,14 +80,16 @@ class LDAPUser(User):
             getattr(self,self.kind.lower()).update_from_LDAP(attrs)
 
 class Student(LDAPUser):
-    graduation_year = models.PositiveSmallIntegerField(null=True)
+    grade_level = models.PositiveSmallIntegerField(null=True)
     sid = models.CharField(max_length=8,null=True)
     school = models.ForeignKey(LDAPGroup,null=True,blank=True,related_name="student_school")
     hr = models.ForeignKey(LDAPGroup,null=True,blank=True,related_name="student_hr")
 
     def update_from_LDAP(self,attrs):
-        self.graduation_year = attrs["ppsyearofgraduation"]
-        self.sid = attrs["ppsstudentnumber"]
+        match = re.search(r'OU=(1?[9012])', attrs['distinguishedName'])
+        if match:
+            self.grade_level = match.group(1)
+        self.sid = attrs["employeeID"]
         for i in self.groups.all():
             if i.ldapgroup:
                 type_ = i.ldapgroup.guess_type()
@@ -93,7 +98,7 @@ class Student(LDAPUser):
                 elif type_ == "hr":
                     self.hr = i.ldapgroup
         self.save()
-        self.groups.add(Group.objects.get_or_create(name=attrs["ppsyearofgraduation"])[0])
+        self.groups.add(Group.objects.get_or_create(name=self.grade_level)[0])
 
     class Meta:
         verbose_name = "Student"

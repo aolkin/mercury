@@ -53,8 +53,8 @@ class SchoolFilter(admin.SimpleListFilter):
 
 class StudentAdmin(UserAdmin):
     list_display = ("username", "first_name", "last_name", "school",
-                    "graduation_year", "is_staff")
-    list_filter = ("kind", "is_staff", "graduation_year",
+                    "grade_level", "is_staff")
+    list_filter = ("kind", "is_staff", "grade_level",
                    SchoolFilter, HRFilter)
 
 admin.site.register(LDAPGroup,GroupAdmin)

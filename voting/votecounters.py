@@ -2,7 +2,7 @@
 class Response:
     def __init__(self,response):
         self.response = response
-        
+
     def get(self):
         return self.response
 
@@ -47,13 +47,13 @@ class IRVQuestion(IteratingResponseCounter):
         def __init__(self,*responses):
             self.responses = responses
             self.index = 0
-    
+
         def get(self):
             if len(self.responses) > self.index:
                 return self.responses[self.index]
             else:
                 return None
-                
+
         def next(self):
             self.index += 1
 
@@ -90,6 +90,30 @@ class IRVQuestion(IteratingResponseCounter):
                     i.next()
         return candidates, worst[1]
 
+
+class HighestWins(IteratingResponseCounter):
+    class HWResponse(Response):
+        def __init__(self, *responses):
+            self.responses = responses
+
+        def get(self):
+            return self.responses
+
+    response_type = HWResponse
+
+    def step(self):
+        candidates = {}
+        for res in self.responses:
+            for r in res.get():
+                candidates[r] = candidates.get(r, 0) + 1
+        winners = sorted(list(candidates.items()), key=lambda x: x[1], reverse=True)[:3]
+        self.result = list(map(lambda x: x[0], winners))
+        return candidates, {x[0]: x[1] for x in winners}
+
+
+
 COUNTING_METHODS = {
+    0: HighestWins,
     1: IRVQuestion,
+    3: HighestWins,
 }
