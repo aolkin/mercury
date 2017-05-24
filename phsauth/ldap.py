@@ -75,6 +75,8 @@ class LDAPBackend:
         res = authenticate(username,password)
         if res[0]:
             user = self.get(username,True)
+            if user is None:
+                return None
             attrs = getAttrs(username)
             user.update_from_LDAP(attrs)
             return user.user_ptr
@@ -88,8 +90,10 @@ class LDAPBackend:
             attrs = getAttrs(username)
             if not attrs:
                 return None
-            if getattr(models,attrs["description"],None):
+            if getattr(models,attrs.get("description", ''),None):
                 getattr(models,attrs["description"])(username=username).save()
+            else:
+                return None
             user = models.LDAPUser.objects.get(username=username)
         if ldapuser:
             return user
